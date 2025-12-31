@@ -21,6 +21,9 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
   const chatEnabledSteps = [1, 2, 3, 4, 5];
   const isChatEnabled = chatEnabledSteps.includes(state.currentStep);
 
+  // Step labels for progress indicator
+  const stepLabels = ['Info', 'Cash', 'Invest', 'Property', 'Mortgages', 'Debts', 'Review'];
+
   useEffect(() => {
     // Auto-add empty row for form mode
     if (inputMode === 'form') {
@@ -65,12 +68,15 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
   };
 
   const handleChatItemsConfirmed = (field: keyof PFSData, items: FinancialItem[]) => {
-    // Add an empty row at the end for potential manual additions
     const itemsWithEmpty = [
       ...items,
       { id: Math.random().toString(36).substr(2, 9), description: '', value: 0 }
     ];
     onUpdate({ [field]: itemsWithEmpty });
+    onNext();
+  };
+
+  const handleSkipSection = () => {
     onNext();
   };
 
@@ -112,27 +118,27 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
                 <div className="flex-grow">
                   <input
                     type="text"
-                    placeholder={isLast ? "Add item description..." : "Description"}
+                    placeholder={isLast ? "Add description..." : "Description"}
                     value={item.description}
                     onChange={(e) => handleUpdateItem(field, item.id, { description: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-100 rounded-xl py-4 px-5 outline-none focus:border-[#3b82f6] focus:bg-white transition-all text-sm font-medium text-slate-800 placeholder:text-slate-300"
+                    className="w-full bg-white border-2 border-slate-200 rounded-xl py-4 px-5 outline-none focus:border-[#3b82f6] focus:ring-4 focus:ring-blue-50 transition-all text-sm font-medium text-slate-800 placeholder:text-slate-400"
                   />
                 </div>
-                <div className="w-32 relative">
+                <div className="w-36 relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
                   <input
                     type="number"
                     placeholder="0"
                     value={item.value || ''}
                     onChange={(e) => handleUpdateItem(field, item.id, { value: parseFloat(e.target.value) || 0 })}
-                    className="w-full bg-slate-50 border border-slate-100 rounded-xl py-4 pl-8 pr-4 outline-none focus:border-[#3b82f6] focus:bg-white transition-all text-sm font-semibold text-slate-800 text-right placeholder:text-slate-300"
+                    className="w-full bg-white border-2 border-slate-200 rounded-xl py-4 pl-8 pr-4 outline-none focus:border-[#3b82f6] focus:ring-4 focus:ring-blue-50 transition-all text-sm font-semibold text-slate-800 text-right placeholder:text-slate-400"
                   />
                 </div>
-                <div className="w-8">
+                <div className="w-10">
                   {!isEmpty && (
                     <button
                       onClick={() => handleRemoveItem(field, item.id)}
-                      className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1"
+                      className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                     >
                       <span className="iconify text-lg" data-icon="solar:trash-bin-trash-bold"></span>
                     </button>
@@ -165,57 +171,133 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
         existingItems={state.data[field] as FinancialItem[]}
         onItemsConfirmed={(items) => handleChatItemsConfirmed(field, items)}
         onSwitchToForm={() => setInputMode('form')}
+        onSkip={handleSkipSection}
       />
     );
   };
 
   return (
     <div className="h-full flex flex-col">
-      {/* Step Header with Progress */}
-      <div className="px-8 py-4 border-b border-slate-100 bg-white">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-semibold text-slate-800 border-b-2 border-[#1e3a5f] pb-1">
-              {currentStepDef.title}
-            </span>
-            {isChatEnabled && (
-              <div className="flex items-center bg-slate-100 rounded-lg p-1">
-                <button
-                  onClick={() => setInputMode('chat')}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                    inputMode === 'chat'
-                      ? 'bg-white text-slate-800 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-700'
-                  }`}
-                >
-                  <span className="iconify mr-1 align-middle" data-icon="solar:chat-round-dots-bold"></span>
-                  Chat
-                </button>
-                <button
-                  onClick={() => setInputMode('form')}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                    inputMode === 'form'
-                      ? 'bg-white text-slate-800 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-700'
-                  }`}
-                >
-                  <span className="iconify mr-1 align-middle" data-icon="solar:list-bold"></span>
-                  Form
-                </button>
+      {/* Progress Header */}
+      <div className="px-8 py-6 bg-white border-b border-slate-100">
+        <div className="max-w-3xl mx-auto">
+          {/* Step Indicators */}
+          <div className="flex items-center justify-between mb-4">
+            {stepLabels.map((label, index) => (
+              <div key={index} className="flex items-center">
+                <div className="flex flex-col items-center">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
+                    index < state.currentStep
+                      ? 'bg-emerald-500 text-white'
+                      : index === state.currentStep
+                        ? 'bg-[#1e3a5f] text-white shadow-lg shadow-[#1e3a5f]/30'
+                        : 'bg-slate-100 text-slate-400'
+                  }`}>
+                    {index < state.currentStep ? (
+                      <span className="iconify" data-icon="solar:check-bold"></span>
+                    ) : (
+                      index + 1
+                    )}
+                  </div>
+                  <span className={`text-[10px] mt-1.5 font-medium ${
+                    index === state.currentStep ? 'text-slate-800' : 'text-slate-400'
+                  }`}>
+                    {label}
+                  </span>
+                </div>
+                {index < stepLabels.length - 1 && (
+                  <div className={`w-8 h-0.5 mx-1 ${
+                    index < state.currentStep ? 'bg-emerald-500' : 'bg-slate-200'
+                  }`} />
+                )}
               </div>
-            )}
+            ))}
           </div>
-          <span className="text-sm font-semibold text-[#3b82f6]">{progress}%</span>
+
+          {/* Progress Bar */}
+          <div className="flex items-center gap-4">
+            <div className="flex-grow h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-[#3b82f6] to-[#1e3a5f] transition-all duration-500 ease-out"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <span className="text-sm font-semibold text-[#3b82f6] min-w-[3rem] text-right">{progress}%</span>
+          </div>
         </div>
       </div>
 
       {/* Form Content */}
-      <div className="flex-grow overflow-y-auto py-12 px-8">
+      <div className="flex-grow overflow-y-auto py-8 px-8">
         <div className="max-w-2xl mx-auto">
+          {/* Mode Toggle - Only for chat-enabled steps */}
+          {isChatEnabled && (
+            <div className="mb-6">
+              <p className="text-xs font-medium text-slate-400 mb-3">How do you want to enter this?</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setInputMode('chat')}
+                  className={`flex-1 p-4 rounded-xl border-2 transition-all ${
+                    inputMode === 'chat'
+                      ? 'border-[#3b82f6] bg-blue-50'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      inputMode === 'chat' ? 'bg-[#3b82f6] text-white' : 'bg-slate-100 text-slate-400'
+                    }`}>
+                      <span className="iconify text-xl" data-icon="solar:chat-round-dots-bold"></span>
+                    </div>
+                    <div className="text-left">
+                      <p className={`text-sm font-semibold ${inputMode === 'chat' ? 'text-[#3b82f6]' : 'text-slate-700'}`}>
+                        Describe it
+                      </p>
+                      <p className="text-xs text-slate-500">AI extracts details</p>
+                    </div>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setInputMode('form')}
+                  className={`flex-1 p-4 rounded-xl border-2 transition-all ${
+                    inputMode === 'form'
+                      ? 'border-[#3b82f6] bg-blue-50'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      inputMode === 'form' ? 'bg-[#3b82f6] text-white' : 'bg-slate-100 text-slate-400'
+                    }`}>
+                      <span className="iconify text-xl" data-icon="solar:list-bold"></span>
+                    </div>
+                    <div className="text-left">
+                      <p className={`text-sm font-semibold ${inputMode === 'form' ? 'text-[#3b82f6]' : 'text-slate-700'}`}>
+                        Fill fields
+                      </p>
+                      <p className="text-xs text-slate-500">Enter manually</p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Main Content Card */}
           <div className="bg-white rounded-2xl border border-slate-100 p-8 shadow-sm">
             {/* Step 0: Identity */}
             {state.currentStep === 0 && (
               <div className="space-y-8">
+                <div className="flex items-start gap-4 mb-8">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#3b82f6] to-[#1e3a5f] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/20">
+                    <span className="iconify text-white text-xl" data-icon="solar:user-bold"></span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-800 mb-1">Let's start with the basics</h3>
+                    <p className="text-sm text-slate-500">Who is this financial statement for?</p>
+                  </div>
+                </div>
+
                 <div className="space-y-3">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     Legal Full Name
@@ -226,8 +308,8 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
                     value={state.data.fullName}
                     onKeyDown={(e) => e.key === 'Enter' && onNext()}
                     onChange={(e) => onUpdate({ fullName: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-100 rounded-xl py-4 px-5 outline-none focus:border-[#3b82f6] focus:bg-white transition-all text-base font-medium text-slate-800 placeholder:text-slate-400"
-                    placeholder="Enter your name"
+                    className="w-full bg-white border-2 border-slate-200 rounded-xl py-4 px-5 outline-none focus:border-[#3b82f6] focus:ring-4 focus:ring-blue-50 transition-all text-base font-medium text-slate-800 placeholder:text-slate-400"
+                    placeholder="Enter your full legal name"
                   />
                 </div>
                 <div className="space-y-3">
@@ -239,8 +321,26 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
                     value={state.data.asOfDate}
                     onKeyDown={(e) => e.key === 'Enter' && onNext()}
                     onChange={(e) => onUpdate({ asOfDate: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-100 rounded-xl py-4 px-5 outline-none focus:border-[#3b82f6] focus:bg-white transition-all text-base font-medium text-slate-800"
+                    className="w-full bg-white border-2 border-slate-200 rounded-xl py-4 px-5 outline-none focus:border-[#3b82f6] focus:ring-4 focus:ring-blue-50 transition-all text-base font-medium text-slate-800"
                   />
+                </div>
+
+                {/* Navigation for step 0 */}
+                <div className="mt-8 flex items-center justify-between pt-6 border-t border-slate-100">
+                  <button
+                    onClick={onBack}
+                    className="text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-2"
+                  >
+                    <span className="iconify" data-icon="solar:arrow-left-linear"></span>
+                    Back
+                  </button>
+                  <button
+                    onClick={onNext}
+                    className="bg-[#1e3a5f] hover:bg-[#162d4a] text-white px-8 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-[#1e3a5f]/20 hover:shadow-xl flex items-center gap-2"
+                  >
+                    Continue
+                    <span className="iconify" data-icon="solar:arrow-right-linear"></span>
+                  </button>
                 </div>
               </div>
             )}
@@ -256,6 +356,24 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
                   {state.currentStep === 3 && renderFinancialList('realEstateAssets', 'Real Estate Assets')}
                   {state.currentStep === 4 && renderFinancialList('realEstateLiabilities', 'Mortgages & Property Loans')}
                   {state.currentStep === 5 && renderFinancialList('otherLiabilities', 'Other Liabilities')}
+
+                  {/* Navigation for form mode */}
+                  <div className="mt-8 flex items-center justify-between pt-6 border-t border-slate-100">
+                    <button
+                      onClick={onBack}
+                      className="text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-2"
+                    >
+                      <span className="iconify" data-icon="solar:arrow-left-linear"></span>
+                      Back
+                    </button>
+                    <button
+                      onClick={onNext}
+                      className="bg-[#1e3a5f] hover:bg-[#162d4a] text-white px-8 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-[#1e3a5f]/20 hover:shadow-xl flex items-center gap-2"
+                    >
+                      Continue
+                      <span className="iconify" data-icon="solar:arrow-right-linear"></span>
+                    </button>
+                  </div>
                 </>
               )
             )}
@@ -263,54 +381,37 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
             {/* Step 6: Final Review */}
             {state.currentStep === 6 && (
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <span className="iconify text-3xl" data-icon="solar:check-circle-bold"></span>
+                <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/30">
+                  <span className="iconify text-white text-4xl" data-icon="solar:check-circle-bold"></span>
                 </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-2">Ready for Review</h3>
-                <p className="text-slate-500 text-sm max-w-sm mx-auto">
-                  Your financial statement is ready. Review and download your lender-ready PDF.
+                <h3 className="text-2xl font-bold text-slate-800 mb-3">All Done!</h3>
+                <p className="text-slate-500 text-base max-w-sm mx-auto mb-8">
+                  Your financial statement is complete. Review everything and download your lender-ready PDF.
                 </p>
-              </div>
-            )}
-
-            {/* Navigation - Only show for non-chat steps or form mode */}
-            {(!isChatEnabled || inputMode === 'form') && (
-              <div className="mt-10 flex items-center justify-between pt-6 border-t border-slate-100">
-                <button
-                  onClick={onBack}
-                  className="text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors"
-                >
-                  Back
-                </button>
                 <button
                   onClick={onNext}
-                  className="bg-[#1e3a5f] hover:bg-[#162d4a] text-white px-8 py-3 rounded-xl text-sm font-semibold transition-colors"
+                  className="bg-[#1e3a5f] hover:bg-[#162d4a] text-white px-8 py-4 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-[#1e3a5f]/20 hover:shadow-xl inline-flex items-center gap-2"
                 >
-                  {state.currentStep === PFS_STEPS.length - 1 ? 'Go to Review' : 'Continue'}
-                </button>
-              </div>
-            )}
-
-            {/* Chat mode back button */}
-            {isChatEnabled && inputMode === 'chat' && (
-              <div className="mt-6 pt-6 border-t border-slate-100">
-                <button
-                  onClick={onBack}
-                  className="text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors"
-                >
-                  ← Back
+                  Review & Download
+                  <span className="iconify" data-icon="solar:arrow-right-linear"></span>
                 </button>
               </div>
             )}
           </div>
-        </div>
-      </div>
 
-      {/* Preview Button */}
-      <div className="fixed bottom-6 right-6">
-        <button className="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg text-xs font-medium shadow-sm hover:shadow-md transition-all">
-          Preview
-        </button>
+          {/* Back button for chat mode */}
+          {isChatEnabled && inputMode === 'chat' && (
+            <div className="mt-6">
+              <button
+                onClick={onBack}
+                className="text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-2"
+              >
+                <span className="iconify" data-icon="solar:arrow-left-linear"></span>
+                Back
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

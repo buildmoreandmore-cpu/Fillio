@@ -14,6 +14,7 @@ interface ChatModeProps {
   contextDescription: string;
   onItemsConfirmed: (items: FinancialItem[]) => void;
   onSwitchToForm: () => void;
+  onSkip: () => void;
   existingItems?: FinancialItem[];
 }
 
@@ -22,13 +23,13 @@ const ChatMode: React.FC<ChatModeProps> = ({
   contextDescription,
   onItemsConfirmed,
   onSwitchToForm,
+  onSkip,
   existingItems = []
 }) => {
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [parsedItems, setParsedItems] = useState<ParsedItem[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [followUp, setFollowUp] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showResults, setShowResults] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -42,35 +43,92 @@ const ChatMode: React.FC<ChatModeProps> = ({
   const getPromptForContext = () => {
     switch (context) {
       case 'cash':
-        return "Tell me about your bank accounts, checking, savings, or any cash you have...";
+        return {
+          title: "Tell me about your bank accounts",
+          subtitle: "Checking, savings, or any cash you have on hand"
+        };
       case 'investments':
-        return "Describe your investments — stocks, bonds, 401k, IRA, mutual funds...";
+        return {
+          title: "What investments do you have?",
+          subtitle: "Stocks, bonds, 401k, IRA, mutual funds..."
+        };
       case 'realEstateAssets':
-        return "Tell me about properties you own — your home, rental properties, land...";
+        return {
+          title: "Do you own any property?",
+          subtitle: "Your home, rental properties, land..."
+        };
       case 'realEstateLiabilities':
-        return "What mortgages or property loans do you have?";
+        return {
+          title: "What mortgages or property loans do you have?",
+          subtitle: "Home loans, property mortgages..."
+        };
       case 'otherLiabilities':
-        return "Describe your other debts — credit cards, car loans, student loans, personal loans...";
+        return {
+          title: "Any other debts?",
+          subtitle: "Credit cards, car loans, student loans, personal loans..."
+        };
       default:
-        return "Tell me about your finances...";
+        return { title: "Tell me about your finances", subtitle: "" };
     }
   };
 
-  const getExampleForContext = () => {
+  const getPromptStarters = () => {
     switch (context) {
       case 'cash':
-        return 'Example: "I have about 12k in my Chase checking and maybe 5k in savings at Wells Fargo"';
+        return [
+          "I have a checking account at...",
+          "My savings is about...",
+          "I keep cash in..."
+        ];
       case 'investments':
-        return 'Example: "My 401k through Fidelity has around 85k, and I have about 10k in a Robinhood brokerage"';
+        return [
+          "My 401k has about...",
+          "I have stocks worth...",
+          "My retirement accounts..."
+        ];
       case 'realEstateAssets':
-        return 'Example: "My house is worth about 450k, and I have a rental property worth maybe 280k"';
+        return [
+          "My house is worth about...",
+          "I own a rental property...",
+          "I have land valued at..."
+        ];
       case 'realEstateLiabilities':
-        return 'Example: "I owe about 320k on my primary home and 210k on the rental property"';
+        return [
+          "I owe about... on my mortgage",
+          "My home loan balance is...",
+          "I have a HELOC with..."
+        ];
       case 'otherLiabilities':
-        return 'Example: "I have like 4k on my Amex, a car loan with 18k left, and I owe my parents 5k"';
+        return [
+          "I have about... on credit cards",
+          "My car loan is...",
+          "I owe... in student loans"
+        ];
       default:
-        return '';
+        return [];
     }
+  };
+
+  const getSkipText = () => {
+    switch (context) {
+      case 'cash':
+        return "I don't have any bank accounts to add";
+      case 'investments':
+        return "I don't have any investments";
+      case 'realEstateAssets':
+        return "I don't own any property";
+      case 'realEstateLiabilities':
+        return "I don't have any mortgages";
+      case 'otherLiabilities':
+        return "I don't have any other debts";
+      default:
+        return "Skip this section";
+    }
+  };
+
+  const handlePromptStarter = (starter: string) => {
+    setInput(starter);
+    textareaRef.current?.focus();
   };
 
   const handleSubmit = async () => {
@@ -95,14 +153,13 @@ const ChatMode: React.FC<ChatModeProps> = ({
       if (data.items && data.items.length > 0) {
         setParsedItems(data.items);
         setSuggestions(data.suggestions || []);
-        setFollowUp(data.followUp || null);
         setShowResults(true);
       } else {
-        setError("I couldn't find any financial items in your description. Try being more specific about amounts.");
+        setError("I couldn't find any items. Try being more specific about amounts.");
       }
     } catch (err) {
       console.error('Parse error:', err);
-      setError("Something went wrong. Please try again or switch to form mode.");
+      setError("Something went wrong. Try again or switch to form mode.");
     } finally {
       setIsProcessing(false);
     }
@@ -169,86 +226,69 @@ const ChatMode: React.FC<ChatModeProps> = ({
     return icons[category] || 'solar:document-bold';
   };
 
-  const getCategoryLabel = (category: string) => {
-    const labels: Record<string, string> = {
-      cash: 'Cash/Bank',
-      investment: 'Investment',
-      realEstate: 'Real Estate',
-      vehicle: 'Vehicle',
-      mortgage: 'Mortgage',
-      autoLoan: 'Auto Loan',
-      creditCard: 'Credit Card',
-      studentLoan: 'Student Loan',
-      personalLoan: 'Personal Loan',
-      businessLoan: 'Business Loan',
-      other: 'Other'
-    };
-    return labels[category] || category;
-  };
+  const prompt = getPromptForContext();
+  const promptStarters = getPromptStarters();
 
+  // Results View
   if (showResults && parsedItems.length > 0) {
     const total = parsedItems.reduce((sum, item) => sum + item.value, 0);
 
     return (
-      <div className="space-y-6">
-        {/* Results Header */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
-            <span className="iconify text-emerald-500 text-xl" data-icon="solar:check-circle-bold"></span>
+      <div className="space-y-6 animate-in fade-in duration-300">
+        {/* Success Header */}
+        <div className="flex items-center gap-3 p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+          <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+            <span className="iconify text-emerald-600 text-xl" data-icon="solar:check-circle-bold"></span>
           </div>
           <div>
-            <h3 className="text-base font-semibold text-slate-800">
+            <h3 className="text-sm font-semibold text-emerald-800">
               Found {parsedItems.length} {parsedItems.length === 1 ? 'item' : 'items'}
             </h3>
-            <p className="text-sm text-slate-500">Review and confirm</p>
+            <p className="text-xs text-emerald-600">Review and confirm below</p>
           </div>
         </div>
 
         {/* Parsed Items */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           {parsedItems.map((item, index) => (
             <div
               key={index}
-              className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl group"
+              className="flex items-center gap-4 p-4 bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all group"
             >
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
+              <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
                 <span className="iconify text-[#3b82f6] text-lg" data-icon={getCategoryIcon(item.category)}></span>
               </div>
-              <div className="flex-grow">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    {getCategoryLabel(item.category)}
-                  </span>
-                </div>
+              <div className="flex-grow min-w-0">
                 <input
                   type="text"
                   value={item.description}
                   onChange={(e) => handleEditItem(index, 'description', e.target.value)}
-                  className="w-full bg-transparent text-sm font-medium text-slate-800 outline-none focus:bg-white focus:px-2 focus:py-1 focus:rounded transition-all"
+                  className="w-full bg-transparent text-sm font-medium text-slate-800 outline-none focus:bg-slate-50 focus:px-2 focus:py-1 focus:-mx-2 focus:-my-1 rounded transition-all"
                 />
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className="text-slate-400 text-sm">$</span>
                 <input
                   type="number"
                   value={item.value}
                   onChange={(e) => handleEditItem(index, 'value', parseFloat(e.target.value) || 0)}
-                  className="w-28 text-right bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 outline-none focus:border-[#3b82f6]"
+                  className="w-24 text-right bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-50"
                 />
                 <button
                   onClick={() => handleRemoveItem(index)}
-                  className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                  className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
                 >
-                  <span className="iconify text-lg" data-icon="solar:trash-bin-trash-bold"></span>
+                  <span className="iconify" data-icon="solar:trash-bin-trash-bold"></span>
                 </button>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Total */}
-        <div className="flex justify-between items-center py-4 border-t border-slate-100">
+        {/* Running Total */}
+        <div className="flex justify-between items-center py-4 px-2 border-t border-slate-100">
           <span className="text-sm font-medium text-slate-500">Total</span>
-          <span className="text-lg font-bold text-slate-800">{formatCurrency(total)}</span>
+          <span className="text-xl font-bold text-slate-800">{formatCurrency(total)}</span>
         </div>
 
         {/* Suggestions */}
@@ -257,54 +297,47 @@ const ChatMode: React.FC<ChatModeProps> = ({
             <div className="flex items-start gap-3">
               <span className="iconify text-amber-500 text-lg mt-0.5" data-icon="solar:lightbulb-bolt-bold"></span>
               <div>
-                <p className="text-sm font-medium text-amber-800 mb-1">Suggestion</p>
-                {suggestions.map((suggestion, i) => (
-                  <p key={i} className="text-sm text-amber-700">{suggestion}</p>
+                <p className="text-xs font-semibold text-amber-700 mb-1">Suggestion</p>
+                {suggestions.map((s, i) => (
+                  <p key={i} className="text-sm text-amber-600">{s}</p>
                 ))}
               </div>
             </div>
           </div>
         )}
 
-        {/* Follow-up Question */}
-        {followUp && (
-          <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
-            <div className="flex items-start gap-3">
-              <span className="iconify text-blue-500 text-lg mt-0.5" data-icon="solar:chat-round-dots-bold"></span>
-              <p className="text-sm text-blue-700">{followUp}</p>
-            </div>
-          </div>
-        )}
-
         {/* Actions */}
-        <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+        <div className="flex items-center justify-between pt-2">
           <button
             onClick={handleAddMore}
-            className="text-sm font-medium text-[#3b82f6] hover:text-[#2563eb] transition-colors"
+            className="text-sm font-medium text-[#3b82f6] hover:text-[#2563eb] transition-colors flex items-center gap-1"
           >
-            + Add More
+            <span className="iconify" data-icon="solar:add-circle-linear"></span>
+            Add More
           </button>
           <button
             onClick={handleConfirm}
-            className="bg-[#1e3a5f] hover:bg-[#162d4a] text-white px-6 py-3 rounded-xl text-sm font-semibold transition-colors"
+            className="bg-[#1e3a5f] hover:bg-[#162d4a] text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-[#1e3a5f]/20 hover:shadow-xl flex items-center gap-2"
           >
             Looks Good
+            <span className="iconify" data-icon="solar:arrow-right-linear"></span>
           </button>
         </div>
       </div>
     );
   }
 
+  // Input View
   return (
     <div className="space-y-6">
       {/* AI Prompt */}
-      <div className="flex items-start gap-3">
-        <div className="w-10 h-10 bg-gradient-to-br from-[#3b82f6] to-[#1e3a5f] rounded-xl flex items-center justify-center flex-shrink-0">
-          <span className="iconify text-white text-lg" data-icon="solar:chat-round-dots-bold"></span>
+      <div className="flex items-start gap-4">
+        <div className="w-12 h-12 bg-gradient-to-br from-[#3b82f6] to-[#1e3a5f] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/20">
+          <span className="iconify text-white text-xl" data-icon="solar:chat-round-dots-bold"></span>
         </div>
         <div>
-          <p className="text-base font-medium text-slate-800 mb-1">{getPromptForContext()}</p>
-          <p className="text-xs text-slate-400">{getExampleForContext()}</p>
+          <h3 className="text-lg font-semibold text-slate-800 mb-1">{prompt.title}</h3>
+          <p className="text-sm text-slate-500">{prompt.subtitle}</p>
         </div>
       </div>
 
@@ -315,54 +348,88 @@ const ChatMode: React.FC<ChatModeProps> = ({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type naturally — I'll figure out the categories and amounts..."
+          placeholder="Type naturally — AI will extract the details..."
           rows={4}
           disabled={isProcessing}
-          className="w-full bg-slate-50 border border-slate-100 rounded-xl py-4 px-5 outline-none focus:border-[#3b82f6] focus:bg-white transition-all text-base text-slate-800 placeholder:text-slate-400 resize-none disabled:opacity-50"
+          className="w-full bg-white border-2 border-slate-200 rounded-2xl py-4 px-5 outline-none focus:border-[#3b82f6] focus:ring-4 focus:ring-blue-50 transition-all text-base text-slate-800 placeholder:text-slate-400 resize-none disabled:opacity-50"
         />
         {isProcessing && (
-          <div className="absolute inset-0 bg-white/80 rounded-xl flex items-center justify-center">
+          <div className="absolute inset-0 bg-white/90 rounded-2xl flex items-center justify-center">
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 border-2 border-[#3b82f6] border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-sm font-medium text-slate-600">Analyzing...</span>
+              <span className="text-sm font-medium text-slate-600">Understanding your input...</span>
             </div>
           </div>
         )}
       </div>
 
+      {/* Prompt Starters */}
+      {!input && promptStarters.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-slate-400 px-1">Or start with:</p>
+          <div className="flex flex-wrap gap-2">
+            {promptStarters.map((starter, i) => (
+              <button
+                key={i}
+                onClick={() => handlePromptStarter(starter)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm rounded-full transition-colors"
+              >
+                {starter}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Error Message */}
       {error && (
-        <div className="p-4 bg-red-50 rounded-xl border border-red-100">
+        <div className="p-4 bg-red-50 rounded-xl border border-red-100 flex items-start gap-3">
+          <span className="iconify text-red-500 text-lg" data-icon="solar:danger-triangle-bold"></span>
           <p className="text-sm text-red-600">{error}</p>
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pt-2">
         <button
           onClick={onSwitchToForm}
           className="text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors flex items-center gap-2"
         >
           <span className="iconify" data-icon="solar:list-bold"></span>
-          Switch to form view
+          Fill fields manually
         </button>
         <button
           onClick={handleSubmit}
-          disabled={!input.trim() || isProcessing}
-          className="bg-[#1e3a5f] hover:bg-[#162d4a] disabled:bg-slate-300 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2"
+          disabled={isProcessing}
+          className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 ${
+            input.trim()
+              ? 'bg-[#1e3a5f] hover:bg-[#162d4a] text-white shadow-lg shadow-[#1e3a5f]/20 hover:shadow-xl'
+              : 'bg-slate-100 text-slate-400 cursor-default'
+          }`}
         >
           Continue
           <span className="iconify" data-icon="solar:arrow-right-linear"></span>
         </button>
       </div>
 
+      {/* Skip Option */}
+      <div className="pt-4 border-t border-slate-100">
+        <button
+          onClick={onSkip}
+          className="w-full py-3 text-sm font-medium text-slate-400 hover:text-slate-600 transition-colors flex items-center justify-center gap-2"
+        >
+          <span className="iconify" data-icon="solar:skip-next-linear"></span>
+          {getSkipText()}
+        </button>
+      </div>
+
       {/* Existing Items */}
       {existingItems.filter(i => i.description || i.value).length > 0 && (
-        <div className="pt-6 border-t border-slate-100">
+        <div className="pt-4 border-t border-slate-100">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Already Added</p>
           <div className="space-y-2">
             {existingItems.filter(i => i.description || i.value).map((item, i) => (
-              <div key={i} className="flex justify-between text-sm">
+              <div key={i} className="flex justify-between text-sm p-3 bg-slate-50 rounded-lg">
                 <span className="text-slate-600">{item.description}</span>
                 <span className="font-medium text-slate-800">{formatCurrency(item.value)}</span>
               </div>
