@@ -1,24 +1,51 @@
 
 import React from 'react';
 
+interface User {
+  name: string;
+  email: string;
+  isPro?: boolean;
+  initials?: string;
+}
+
+interface Document {
+  id: string;
+  title: string;
+  status: 'DRAFT' | 'COMPLETE';
+  date: string;
+}
+
 interface LayoutProps {
   children: React.ReactNode;
   currentView: string;
   onHomeClick: () => void;
   onLogout: () => void;
+  onSignIn?: () => void;
+  user?: User | null;
+  documents?: Document[];
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, currentView, onHomeClick, onLogout }) => {
-  const recentDocs = [
-    { id: '1', title: 'Personal Financial Statement', status: 'DRAFT', date: 'Edited 2 days ago', statusColor: 'amber' },
-    { id: '2', title: 'Debt Schedule 2024', status: 'COMPLETE', date: 'Dec 15, 2024', statusColor: 'emerald' },
-    { id: '3', title: 'Q4 Balance Sheet', status: 'COMPLETE', date: 'Nov 28, 2024', statusColor: 'emerald' },
-  ];
+const Layout: React.FC<LayoutProps> = ({
+  children,
+  currentView,
+  onHomeClick,
+  onLogout,
+  onSignIn,
+  user = null,
+  documents = []
+}) => {
+  const isAuthenticated = !!user;
 
+  // Calculate stats from actual documents
   const stats = {
-    total: 3,
-    complete: 2,
-    draft: 1
+    total: documents.length,
+    complete: documents.filter(d => d.status === 'COMPLETE').length,
+    draft: documents.filter(d => d.status === 'DRAFT').length
+  };
+
+  // Get user initials
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   return (
@@ -84,58 +111,72 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, onHomeClick, onL
         {/* Recent Activity */}
         <div className="px-4 flex-grow overflow-y-auto">
           <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">Recent Activity</h4>
-          <div className="space-y-2">
-            {recentDocs.map((doc) => (
-              <div
-                key={doc.id}
-                className="p-4 bg-white rounded-xl cursor-pointer transition-all duration-200 border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 group"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <span className={`w-2 h-2 rounded-full ${doc.statusColor === 'amber' ? 'bg-amber-400' : 'bg-emerald-400'}`}></span>
-                  <span className={`text-[9px] font-bold uppercase tracking-wider ${doc.statusColor === 'amber' ? 'text-amber-500' : 'text-emerald-500'}`}>
-                    {doc.status}
-                  </span>
+          {isAuthenticated && documents.length > 0 ? (
+            <div className="space-y-2">
+              {documents.slice(0, 5).map((doc) => (
+                <div
+                  key={doc.id}
+                  className="p-4 bg-white rounded-xl cursor-pointer transition-all duration-200 border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 group"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`w-2 h-2 rounded-full ${doc.status === 'DRAFT' ? 'bg-amber-400' : 'bg-emerald-400'}`}></span>
+                    <span className={`text-[9px] font-bold uppercase tracking-wider ${doc.status === 'DRAFT' ? 'text-amber-500' : 'text-emerald-500'}`}>
+                      {doc.status}
+                    </span>
+                  </div>
+                  <h5 className="text-[13px] font-semibold text-slate-800 mb-1 leading-tight">{doc.title}</h5>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-slate-400">{doc.date}</span>
+                    <span className="text-[10px] font-medium text-[#3b82f6] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                      Continue
+                      <span className="iconify" data-icon="solar:arrow-right-linear"></span>
+                    </span>
+                  </div>
                 </div>
-                <h5 className="text-[13px] font-semibold text-slate-800 mb-1 leading-tight">{doc.title}</h5>
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-slate-400">{doc.date}</span>
-                  <span className="text-[10px] font-medium text-[#3b82f6] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                    Continue
-                    <span className="iconify" data-icon="solar:arrow-right-linear"></span>
-                  </span>
-                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <span className="iconify text-slate-400 text-2xl" data-icon="solar:document-add-linear"></span>
               </div>
-            ))}
-          </div>
+              <p className="text-sm text-slate-500 mb-1">No documents yet</p>
+              <p className="text-xs text-slate-400">
+                {isAuthenticated ? 'Create your first document' : 'Sign in to see your documents'}
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Quick Stats */}
-        <div className="px-4 py-4 border-t border-slate-100">
-          <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Quick Stats</h4>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="flex items-center gap-2 text-slate-500">
-                <span className="iconify text-slate-400" data-icon="solar:document-bold"></span>
-                Documents
-              </span>
-              <span className="font-semibold text-slate-800">{stats.total}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="flex items-center gap-2 text-slate-500">
-                <span className="iconify text-emerald-500" data-icon="solar:check-circle-bold"></span>
-                Complete
-              </span>
-              <span className="font-semibold text-emerald-600">{stats.complete}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="flex items-center gap-2 text-slate-500">
-                <span className="iconify text-amber-500" data-icon="solar:pen-bold"></span>
-                Draft
-              </span>
-              <span className="font-semibold text-amber-600">{stats.draft}</span>
+        {/* Quick Stats - Only show when authenticated */}
+        {isAuthenticated && (
+          <div className="px-4 py-4 border-t border-slate-100">
+            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Quick Stats</h4>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2 text-slate-500">
+                  <span className="iconify text-slate-400" data-icon="solar:document-bold"></span>
+                  Documents
+                </span>
+                <span className="font-semibold text-slate-800">{stats.total}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2 text-slate-500">
+                  <span className="iconify text-emerald-500" data-icon="solar:check-circle-bold"></span>
+                  Complete
+                </span>
+                <span className="font-semibold text-emerald-600">{stats.complete}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2 text-slate-500">
+                  <span className="iconify text-amber-500" data-icon="solar:pen-bold"></span>
+                  Draft
+                </span>
+                <span className="font-semibold text-amber-600">{stats.draft}</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Tip Card */}
         <div className="px-4 pb-4">
@@ -154,37 +195,59 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, onHomeClick, onL
           </div>
         </div>
 
-        {/* User Profile - More Presence */}
+        {/* User Profile / Sign In CTA */}
         <div className="px-4 py-4 border-t border-slate-100 bg-slate-50/50">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="relative">
-              <div className="w-12 h-12 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full flex items-center justify-center text-base font-bold text-slate-600 shadow-inner">
-                JD
+          {isAuthenticated && user ? (
+            <>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full flex items-center justify-center text-base font-bold text-slate-600 shadow-inner">
+                    {user.initials || getInitials(user.name)}
+                  </div>
+                  <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-emerald-400 rounded-full border-2 border-white flex items-center justify-center">
+                    <span className="iconify text-white text-[8px]" data-icon="solar:check-bold"></span>
+                  </div>
+                </div>
+                <div className="flex-grow">
+                  <h6 className="text-sm font-semibold text-slate-800 leading-tight">{user.name}</h6>
+                  {user.isPro ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full mt-1">
+                      <span className="iconify" data-icon="solar:star-bold"></span>
+                      PRO MEMBER
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-slate-400 mt-1">Free Account</span>
+                  )}
+                </div>
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-emerald-400 rounded-full border-2 border-white flex items-center justify-center">
-                <span className="iconify text-white text-[8px]" data-icon="solar:check-bold"></span>
+              <div className="flex gap-2">
+                <button className="flex-1 py-2.5 px-3 text-[11px] font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center gap-1.5">
+                  <span className="iconify" data-icon="solar:settings-linear"></span>
+                  Settings
+                </button>
+                <button
+                  onClick={onLogout}
+                  className="w-11 h-11 flex items-center justify-center text-slate-400 hover:text-red-500 bg-white border border-slate-200 rounded-lg hover:bg-red-50 hover:border-red-200 transition-all"
+                >
+                  <span className="iconify text-lg" data-icon="solar:logout-2-linear"></span>
+                </button>
               </div>
+            </>
+          ) : (
+            <div className="text-center">
+              <div className="w-14 h-14 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="iconify text-slate-400 text-2xl" data-icon="solar:user-circle-linear"></span>
+              </div>
+              <p className="text-sm font-medium text-slate-700 mb-1">Save your work</p>
+              <p className="text-xs text-slate-400 mb-4">Sign in to save documents and access them anywhere</p>
+              <button
+                onClick={onSignIn}
+                className="w-full bg-[#1e3a5f] hover:bg-[#162d4a] text-white py-3 rounded-xl text-sm font-semibold transition-all"
+              >
+                Sign In
+              </button>
             </div>
-            <div className="flex-grow">
-              <h6 className="text-sm font-semibold text-slate-800 leading-tight">John Doe</h6>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full mt-1">
-                <span className="iconify" data-icon="solar:star-bold"></span>
-                PRO MEMBER
-              </span>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <button className="flex-1 py-2.5 px-3 text-[11px] font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center gap-1.5">
-              <span className="iconify" data-icon="solar:settings-linear"></span>
-              Settings
-            </button>
-            <button
-              onClick={onLogout}
-              className="w-11 h-11 flex items-center justify-center text-slate-400 hover:text-red-500 bg-white border border-slate-200 rounded-lg hover:bg-red-50 hover:border-red-200 transition-all"
-            >
-              <span className="iconify text-lg" data-icon="solar:logout-2-linear"></span>
-            </button>
-          </div>
+          )}
         </div>
       </aside>
 

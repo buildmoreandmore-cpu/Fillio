@@ -115,11 +115,21 @@ const App: React.FC = () => {
     );
   }
 
+  // Mock user data when logged in (will be replaced with real auth)
+  const currentUser = isLoggedIn ? {
+    name: state.data.fullName || 'User',
+    email: 'user@example.com',
+    isPro: isPro
+  } : null;
+
   return (
-    <Layout 
-      currentView={view} 
+    <Layout
+      currentView={view}
       onHomeClick={() => setView('landing')}
       onLogout={handleLogout}
+      onSignIn={() => setAuthMode('signin')}
+      user={currentUser}
+      documents={[]}
     >
       <div className="fade-in h-full bg-[#F8FAFC]">
         {view === 'landing' && (
