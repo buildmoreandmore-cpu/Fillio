@@ -1,8 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 interface FinancialItem {
   category: string;
@@ -53,9 +51,9 @@ RULES:
 2. Infer reasonable values when users say "about" or "around" or "like"
 3. Categorize each item appropriately
 4. If something is ambiguous, make your best guess but flag it
-5. Always respond with valid JSON
+5. Always respond with valid JSON only, no markdown
 
-RESPONSE FORMAT:
+RESPONSE FORMAT (JSON only):
 {
   "items": [
     {
@@ -73,31 +71,40 @@ RESPONSE FORMAT:
   const contextInfo = context ? `\nCurrent context: The user is describing their ${context}.` : '';
 
   try {
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      system: systemPrompt + contextInfo,
-      messages: [
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+    const result = await model.generateContent({
+      contents: [
         {
           role: 'user',
-          content: `Parse the following into structured financial data:\n\n"${input}"\n\nRespond ONLY with valid JSON.`
+          parts: [{ text: `${systemPrompt}${contextInfo}\n\nParse the following into structured financial data:\n\n"${input}"\n\nRespond ONLY with valid JSON, no markdown code blocks.` }]
         }
-      ]
+      ],
+      generationConfig: {
+        temperature: 0.3,
+        maxOutputTokens: 1024,
+      }
     });
 
-    const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
+    const responseText = result.response.text();
 
-    // Extract JSON from response
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('No valid JSON in response');
+    // Extract JSON from response (handle potential markdown code blocks)
+    let jsonStr = responseText;
+    const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/) || responseText.match(/```\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      jsonStr = jsonMatch[1];
+    } else {
+      const plainJsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (plainJsonMatch) {
+        jsonStr = plainJsonMatch[0];
+      }
     }
 
-    const parsed: ParseResponse = JSON.parse(jsonMatch[0]);
+    const parsed: ParseResponse = JSON.parse(jsonStr);
     return res.status(200).json(parsed);
 
   } catch (error: any) {
-    console.error('Claude API error:', error);
+    console.error('Gemini API error:', error);
     return res.status(500).json({
       error: 'Failed to parse input',
       details: error.message
