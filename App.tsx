@@ -7,6 +7,7 @@ import StepFlow from './components/StepFlow';
 import Summary from './components/Summary';
 import LandingPage from './components/LandingPage';
 import AuthModal from './components/AuthModal';
+import Paywall from './components/Paywall';
 
 const INITIAL_PFS_DATA: PFSData = {
   fullName: '',
@@ -20,8 +21,10 @@ const INITIAL_PFS_DATA: PFSData = {
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isPro, setIsPro] = useState(false);
+  const [hasPaidForDoc, setHasPaidForDoc] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup' | null>(null);
-  const [view, setView] = useState<'landing' | 'flow' | 'review'>('landing');
+  const [view, setView] = useState<'landing' | 'flow' | 'review' | 'paywall'>('landing');
   const [search, setSearch] = useState('');
   const [state, setState] = useState<AppState>({
     selectedDoc: null,
@@ -36,14 +39,13 @@ const App: React.FC = () => {
 
   const handleLogout = () => {
     setIsLoggedIn(false);
+    setIsPro(false);
+    setHasPaidForDoc(false);
     setView('landing');
   };
 
   const selectDocument = (type: DocumentType) => {
-    if (!isLoggedIn) {
-      setAuthMode('signup');
-      return;
-    }
+    // No longer requiring login to start
     setState(prev => ({ ...prev, selectedDoc: type, currentStep: 0 }));
     setView('flow');
   };
@@ -71,7 +73,29 @@ const App: React.FC = () => {
     }));
   };
 
-  if (!isLoggedIn) {
+  const handleExportRequested = () => {
+    if (isPro || hasPaidForDoc) {
+      // Logic for actual export is inside Summary, 
+      // but App can control if Summary is in 'Locked' mode.
+      return;
+    }
+    setView('paywall');
+  };
+
+  const handlePaymentSuccess = (type: 'one-time' | 'subscription') => {
+    if (type === 'subscription') {
+      setIsPro(true);
+    } else {
+      setHasPaidForDoc(true);
+    }
+    setView('review');
+    if (!isLoggedIn) {
+      setAuthMode('signup'); // Prompt to save work after payment
+    }
+  };
+
+  // If not logged in and on landing, show public landing page
+  if (!isLoggedIn && view === 'landing') {
     return (
       <div className="relative">
         <LandingPage 
@@ -105,11 +129,11 @@ const App: React.FC = () => {
                 <div className="mb-20 text-left max-w-3xl">
                   <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-full text-[11px] font-black uppercase tracking-widest mb-6">
                     <span className="iconify text-lg" data-icon="solar:verified-check-bold-duotone"></span>
-                    Workspace Active
+                    {isLoggedIn ? 'Workspace Active' : 'Start Designing'}
                   </div>
                   <h1 className="text-5xl md:text-7xl font-[900] text-slate-900 mb-6 tracking-[-0.04em] leading-[0.95]">
-                    Select a document <br/>
-                    <span className="text-blue-600">template.</span>
+                    {isLoggedIn ? 'Select a document' : 'Create your'} <br/>
+                    <span className="text-blue-600">{isLoggedIn ? 'template.' : 'financial doc.'}</span>
                   </h1>
                   
                   <div className="relative group max-w-2xl mt-12">
@@ -150,10 +174,6 @@ const App: React.FC = () => {
                               <div className="flex justify-between items-center"><div className="w-1/2 h-2 bg-slate-50 rounded-full"></div><div className="w-6 h-2 bg-slate-100 rounded-full"></div></div>
                               <div className="flex justify-between items-center"><div className="w-1/3 h-2 bg-slate-50 rounded-full"></div><div className="w-10 h-2 bg-blue-100 rounded-full"></div></div>
                            </div>
-                           <div className="mt-auto pt-4 border-t border-slate-50 flex justify-between items-center">
-                              <div className="w-14 h-3 bg-blue-50 rounded-full"></div>
-                              <div className="w-10 h-4 bg-blue-600 rounded-lg"></div>
-                           </div>
                         </div>
                       </div>
                       <div className="p-10 flex flex-col flex-grow bg-white">
@@ -187,15 +207,38 @@ const App: React.FC = () => {
           <div className="h-full bg-[#F8FAFC]">
             <Summary
               data={state.data}
+              isLocked={!isPro && !hasPaidForDoc}
+              onExportRequested={handleExportRequested}
               onEdit={() => setView('flow')}
               onReset={() => {
                 setState(prev => ({ ...prev, data: INITIAL_PFS_DATA, currentStep: 0 }));
+                setHasPaidForDoc(false);
                 setView('landing');
               }}
             />
           </div>
         )}
+
+        {view === 'paywall' && (
+          <div className="h-full bg-[#F8FAFC]">
+            <Paywall 
+              data={state.data}
+              onBack={() => setView('review')}
+              onSuccess={handlePaymentSuccess}
+              onSignup={() => setAuthMode('signup')}
+            />
+          </div>
+        )}
       </div>
+
+      {authMode && (
+        <AuthModal 
+          mode={authMode} 
+          onClose={() => setAuthMode(null)} 
+          onSuccess={handleLogin}
+          setMode={setAuthMode}
+        />
+      )}
     </Layout>
   );
 };

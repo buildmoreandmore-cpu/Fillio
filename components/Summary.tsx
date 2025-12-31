@@ -1,14 +1,17 @@
+
 import React, { useRef, useState } from 'react';
 import { PFSData, FinancialItem } from '../types';
 import PDFPreview from './PDFPreview';
 
 interface SummaryProps {
   data: PFSData;
+  isLocked: boolean;
+  onExportRequested: () => void;
   onEdit: () => void;
   onReset: () => void;
 }
 
-const Summary: React.FC<SummaryProps> = ({ data, onEdit, onReset }) => {
+const Summary: React.FC<SummaryProps> = ({ data, isLocked, onExportRequested, onEdit, onReset }) => {
   const [isExporting, setIsExporting] = useState(false);
   const pdfRef = useRef<HTMLDivElement>(null);
 
@@ -35,6 +38,11 @@ const Summary: React.FC<SummaryProps> = ({ data, onEdit, onReset }) => {
   };
 
   const handleExport = async () => {
+    if (isLocked) {
+      onExportRequested();
+      return;
+    }
+
     if (!pdfRef.current) return;
     setIsExporting(true);
     
@@ -76,7 +84,7 @@ const Summary: React.FC<SummaryProps> = ({ data, onEdit, onReset }) => {
           <div className="space-y-4">
             <h2 className="text-3xl font-extrabold text-slate-900 tracking-tighter">Review Statement</h2>
             <p className="text-gray-500 font-medium text-[14px] leading-relaxed">
-              Verify your totals. Once confirmed, you can export a secure PDF for your records.
+              Verify your totals. {isLocked ? 'Document is ready for download after unlocking.' : 'You can now export your secure PDF.'}
             </p>
           </div>
 
@@ -106,8 +114,8 @@ const Summary: React.FC<SummaryProps> = ({ data, onEdit, onReset }) => {
                     : 'bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-500/20 active:scale-95'
                 }`}
               >
-                <span className="iconify text-xl" data-icon="solar:printer-bold-duotone"></span>
-                {isExporting ? 'Preparing...' : 'Export PDF'}
+                <span className="iconify text-xl" data-icon={isLocked ? "solar:lock-bold-duotone" : "solar:printer-bold-duotone"}></span>
+                {isExporting ? 'Preparing...' : isLocked ? 'Unlock & Download' : 'Export PDF'}
               </button>
               <button
                 onClick={onEdit}
@@ -128,22 +136,41 @@ const Summary: React.FC<SummaryProps> = ({ data, onEdit, onReset }) => {
 
         {/* Live Document Preview Container */}
         <div className="lg:col-span-3">
-          <div className="bg-white rounded-3xl shadow-2xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-3xl shadow-2xl shadow-gray-200/50 border border-gray-100 overflow-hidden relative">
             <div className="bg-[#F8F9FA] px-10 py-5 border-b border-gray-100 flex justify-between items-center">
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-green-500"></span> 
-                Previewing: {data.fullName || 'Untitled Statement'}
+                <span className={`w-2 h-2 rounded-full ${isLocked ? 'bg-amber-400' : 'bg-green-500'}`}></span> 
+                {isLocked ? 'Preview Mode' : 'Ready for Export'}: {data.fullName || 'Untitled Statement'}
               </span>
-              <div className="flex gap-2">
-                <div className="w-2 h-2 rounded-full bg-gray-200"></div>
-                <div className="w-2 h-2 rounded-full bg-gray-200"></div>
+              <div className="flex gap-2 text-slate-300">
+                <span className="iconify text-lg" data-icon="solar:shield-check-bold-duotone"></span>
+                <span className="iconify text-lg" data-icon="solar:verified-check-bold-duotone"></span>
               </div>
             </div>
-            <div className="p-8 bg-[#F3F4F6] overflow-auto scrollbar-hide max-h-[80vh] flex justify-center">
+            
+            <div className={`p-8 bg-[#F3F4F6] overflow-auto scrollbar-hide max-h-[80vh] flex justify-center transition-all ${isLocked ? 'filter blur-[1px]' : ''}`}>
               <div ref={pdfRef} className="origin-top scale-[0.65] sm:scale-100 transform-gpu transition-transform">
                 <PDFPreview data={data} totalAssets={totalAssets} totalLiabilities={totalLiabilities} netWorth={netWorth} />
               </div>
             </div>
+
+            {isLocked && (
+               <div className="absolute inset-x-0 bottom-0 top-[60px] flex items-center justify-center pointer-events-none">
+                  <div className="bg-white/80 backdrop-blur-md px-10 py-8 rounded-[2rem] shadow-2xl border border-slate-100 text-center flex flex-col items-center gap-4 pointer-events-auto mb-20 transform -translate-y-1/2">
+                    <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-2">
+                      <span className="iconify text-3xl" data-icon="solar:document-add-bold-duotone"></span>
+                    </div>
+                    <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight">Your doc is ready</h4>
+                    <p className="text-slate-500 font-medium text-sm max-w-[240px]">Download your professional, bank-ready PDF in seconds.</p>
+                    <button 
+                      onClick={onExportRequested}
+                      className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 active:scale-95 transition-all"
+                    >
+                      Unlock Now
+                    </button>
+                  </div>
+               </div>
+            )}
           </div>
         </div>
 
