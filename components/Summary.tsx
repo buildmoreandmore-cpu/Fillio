@@ -2,6 +2,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { PFSData, FinancialItem } from '../types';
 import PDFPreview from './PDFPreview';
+import { downloadPDF } from './PDFDocument';
 
 interface SummaryProps {
   data: PFSData;
@@ -112,30 +113,10 @@ const Summary: React.FC<SummaryProps> = ({ data, isLocked, onExportRequested, on
       return;
     }
 
-    if (!pdfRef.current) return;
     setIsExporting(true);
 
     try {
-      // @ts-ignore
-      const html2canvas = window.html2canvas;
-      // @ts-ignore
-      const { jsPDF } = window.jspdf;
-
-      const canvas = await html2canvas(pdfRef.current, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff'
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`PFS_${data.fullName.replace(/\s+/g, '_') || 'Fillio'}.pdf`);
+      await downloadPDF(data);
     } catch (error) {
       console.error('Export failed', error);
       alert('Failed to generate PDF. Please try again.');

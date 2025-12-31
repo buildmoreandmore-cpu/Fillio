@@ -1,5 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import { useAuth } from '../lib/auth';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 interface AuthModalProps {
   mode: 'signin' | 'signup';
@@ -9,15 +11,105 @@ interface AuthModalProps {
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode }) => {
+  const { signIn, signUp, isConfigured } = useAuth();
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      if (!isConfigured) {
+        // Demo mode - just call onSuccess
+        onSuccess();
+        return;
+      }
+
+      if (mode === 'signup') {
+        const { error } = await signUp(email, password, fullName);
+        if (error) {
+          setError(error.message);
+          return;
+        }
+      } else {
+        const { error } = await signIn(email, password);
+        if (error) {
+          setError(error.message);
+          return;
+        }
+      }
+
+      onSuccess();
+    } catch (err: any) {
+      setError(err.message || 'An error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    if (!isConfigured) {
+      onSuccess();
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+
+      if (error) {
+        setError(error.message);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign in with Google');
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    if (!isConfigured) {
+      setError('Password reset not available in demo mode');
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`
+      });
+
+      if (error) {
+        setError(error.message);
+      } else {
+        setError(null);
+        alert('Password reset email sent! Check your inbox.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to send reset email');
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
-      <div 
+      <div
         className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
         onClick={onClose}
       />
-      
+
       <div className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] p-10 fade-in">
-        <button 
+        <button
           onClick={onClose}
           className="absolute top-8 right-8 text-slate-300 hover:text-slate-900 transition-colors"
         >
@@ -29,56 +121,92 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
             {mode === 'signin' ? 'Welcome Back' : 'Get Started'}
           </h2>
           <p className="text-slate-500 font-medium text-sm">
-            {mode === 'signin' 
-              ? 'Access your saved documents and bank links.' 
+            {mode === 'signin'
+              ? 'Access your saved documents and bank links.'
               : 'Create professional docs in under 5 minutes.'}
           </p>
         </div>
 
-        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); onSuccess(); }}>
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600">
+            {error}
+          </div>
+        )}
+
+        {!isConfigured && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-700">
+            <span className="font-bold">Demo Mode:</span> Supabase not configured. Auth will be simulated.
+          </div>
+        )}
+
+        <form className="space-y-4" onSubmit={handleSubmit}>
           {mode === 'signup' && (
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Full Name</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="John Doe"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
                 required
-                className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-200"
+                disabled={isLoading}
+                className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300 disabled:opacity-50"
               />
             </div>
           )}
-          
+
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Email Address</label>
-            <input 
-              type="email" 
+            <input
+              type="email"
               placeholder="john@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-200"
+              disabled={isLoading}
+              className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300 disabled:opacity-50"
             />
           </div>
 
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Password</label>
-            <input 
-              type="password" 
+            <input
+              type="password"
               placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-200"
+              minLength={6}
+              disabled={isLoading}
+              className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300 disabled:opacity-50"
             />
           </div>
 
           {mode === 'signin' && (
              <div className="text-right">
-                <button type="button" className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">Forgot Password?</button>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+                >
+                  Forgot Password?
+                </button>
              </div>
           )}
 
-          <button 
+          <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-2xl text-[12px] font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-500/20 transition-all active:scale-95 mt-4"
+            disabled={isLoading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-2xl text-[12px] font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-500/20 transition-all active:scale-95 mt-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {mode === 'signin' ? 'Sign In' : 'Create Account'}
+            {isLoading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Processing...
+              </>
+            ) : (
+              mode === 'signin' ? 'Sign In' : 'Create Account'
+            )}
           </button>
         </form>
 
@@ -91,7 +219,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
           </div>
         </div>
 
-        <button className="w-full mt-8 bg-white border-2 border-slate-100 hover:border-slate-200 text-slate-900 py-4 rounded-2xl text-[12px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all">
+        <button
+          onClick={handleGoogleSignIn}
+          disabled={isLoading}
+          className="w-full mt-8 bg-white border-2 border-slate-100 hover:border-slate-200 text-slate-900 py-4 rounded-2xl text-[12px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all disabled:opacity-50"
+        >
           <span className="iconify text-xl" data-icon="simple-icons:google"></span>
           Continue with Google
         </button>
@@ -100,8 +232,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
             {mode === 'signin' ? "Don't have an account?" : "Already have an account?"}
             {' '}
-            <button 
-              onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
+            <button
+              onClick={() => {
+                setMode(mode === 'signin' ? 'signup' : 'signin');
+                setError(null);
+              }}
               className="text-blue-600 hover:underline"
             >
               {mode === 'signin' ? 'Sign Up' : 'Sign In'}

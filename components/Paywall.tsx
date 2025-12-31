@@ -1,6 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { PFSData } from '../types';
+import { useAuth } from '../lib/auth';
+import { isStripeConfigured } from '../lib/stripe';
 
 interface PaywallProps {
   data: PFSData;
@@ -10,6 +12,55 @@ interface PaywallProps {
 }
 
 const Paywall: React.FC<PaywallProps> = ({ data, onBack, onSuccess, onSignup }) => {
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState<'one-time' | 'subscription' | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleCheckout = async (priceType: 'one-time' | 'subscription') => {
+    setError(null);
+
+    // If Stripe not configured, use demo mode
+    if (!isStripeConfigured()) {
+      onSuccess(priceType);
+      return;
+    }
+
+    setIsLoading(priceType);
+
+    try {
+      const response = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceType,
+          userId: user?.id || null,
+          documentId: null,
+          successUrl: `${window.location.origin}?checkout=success`,
+          cancelUrl: `${window.location.origin}?checkout=cancelled`
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create checkout session');
+      }
+
+      const { url } = await response.json();
+
+      if (url) {
+        window.location.href = url;
+      } else {
+        // Fallback to demo mode if no URL returned
+        onSuccess(priceType);
+      }
+    } catch (err: any) {
+      console.error('Checkout error:', err);
+      setError('Payment system unavailable. Using demo mode.');
+      // Fallback to demo mode
+      setTimeout(() => onSuccess(priceType), 1500);
+    } finally {
+      setIsLoading(null);
+    }
+  };
   // Calculate totals from actual data
   const totalCash = data.cashAssets.reduce((sum, item) => sum + (item.value || 0), 0);
   const totalInvestments = data.investmentAssets.reduce((sum, item) => sum + (item.value || 0), 0);
@@ -150,10 +201,17 @@ const Paywall: React.FC<PaywallProps> = ({ data, onBack, onSuccess, onSignup }) 
 
         {/* Right Side: Pricing Options */}
         <div className="space-y-5">
+          {/* Error Message */}
+          {error && (
+            <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl text-sm text-amber-700">
+              {error}
+            </div>
+          )}
+
           {/* One-Time Download */}
           <div
-            onClick={() => onSuccess('one-time')}
-            className="group relative bg-white border-2 border-slate-200 hover:border-slate-300 rounded-2xl p-6 cursor-pointer transition-all hover:shadow-lg"
+            onClick={() => !isLoading && handleCheckout('one-time')}
+            className={`group relative bg-white border-2 border-slate-200 hover:border-slate-300 rounded-2xl p-6 cursor-pointer transition-all hover:shadow-lg ${isLoading ? 'opacity-75 pointer-events-none' : ''}`}
           >
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -172,15 +230,25 @@ const Paywall: React.FC<PaywallProps> = ({ data, onBack, onSuccess, onSignup }) 
                 24-hour edit window
               </li>
             </ul>
-            <button className="w-full bg-slate-800 hover:bg-slate-900 text-white py-3.5 rounded-xl text-sm font-semibold transition-all">
-              Download Now — $9
+            <button
+              disabled={!!isLoading}
+              className="w-full bg-slate-800 hover:bg-slate-900 text-white py-3.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {isLoading === 'one-time' ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Processing...
+                </>
+              ) : (
+                'Download Now — $9'
+              )}
             </button>
           </div>
 
           {/* Pro Unlimited - Best Value */}
           <div
-            onClick={() => onSuccess('subscription')}
-            className="group relative bg-white border-2 border-blue-500 rounded-2xl p-6 cursor-pointer transition-all hover:shadow-xl hover:shadow-blue-500/10"
+            onClick={() => !isLoading && handleCheckout('subscription')}
+            className={`group relative bg-white border-2 border-blue-500 rounded-2xl p-6 cursor-pointer transition-all hover:shadow-xl hover:shadow-blue-500/10 ${isLoading ? 'opacity-75 pointer-events-none' : ''}`}
           >
             <div className="absolute -top-3 right-6 bg-blue-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full flex items-center gap-1">
               <span className="iconify text-yellow-300" data-icon="solar:star-bold"></span>
@@ -225,8 +293,18 @@ const Paywall: React.FC<PaywallProps> = ({ data, onBack, onSuccess, onSignup }) 
               </div>
             </div>
 
-            <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-blue-500/25">
-              Get Pro — $12/mo
+            <button
+              disabled={!!isLoading}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {isLoading === 'subscription' ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Processing...
+                </>
+              ) : (
+                'Get Pro — $12/mo'
+              )}
             </button>
           </div>
 
