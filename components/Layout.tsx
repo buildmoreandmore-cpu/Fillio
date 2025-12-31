@@ -48,6 +48,16 @@ const Layout: React.FC<LayoutProps> = ({
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  // Handle nav clicks - prompt sign-in for guests
+  const handleNavClick = (feature: string) => {
+    if (!isAuthenticated && onSignIn) {
+      onSignIn();
+    } else {
+      // TODO: Navigate to feature when implemented
+      console.log(`Navigate to ${feature}`);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-white overflow-hidden">
       {/* Left Icon Rail - Darker Background */}
@@ -67,22 +77,31 @@ const Layout: React.FC<LayoutProps> = ({
               <span className="iconify text-xl" data-icon="solar:home-2-bold"></span>
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-[#1e3a5f] rounded-r-full"></div>
             </button>
-            <button className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#1e3a5f] hover:bg-white/60 transition-all group relative">
+            <button
+              onClick={() => handleNavClick('history')}
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#1e3a5f] hover:bg-white/60 transition-all group relative"
+            >
               <span className="iconify text-xl" data-icon="solar:clock-circle-bold"></span>
-              <div className="absolute left-12 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                History
+              <div className="absolute left-12 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                {isAuthenticated ? 'History' : 'Sign in for History'}
               </div>
             </button>
-            <button className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#1e3a5f] hover:bg-white/60 transition-all group relative">
+            <button
+              onClick={() => handleNavClick('documents')}
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#1e3a5f] hover:bg-white/60 transition-all group relative"
+            >
               <span className="iconify text-xl" data-icon="solar:folder-bold"></span>
-              <div className="absolute left-12 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                Documents
+              <div className="absolute left-12 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                {isAuthenticated ? 'Documents' : 'Sign in for Documents'}
               </div>
             </button>
-            <button className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#1e3a5f] hover:bg-white/60 transition-all group relative">
+            <button
+              onClick={() => handleNavClick('settings')}
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#1e3a5f] hover:bg-white/60 transition-all group relative"
+            >
               <span className="iconify text-xl" data-icon="solar:settings-bold"></span>
-              <div className="absolute left-12 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                Settings
+              <div className="absolute left-12 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                {isAuthenticated ? 'Settings' : 'Sign in for Settings'}
               </div>
             </button>
           </nav>
