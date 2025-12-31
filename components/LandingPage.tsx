@@ -73,19 +73,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
               >
                 {/* Document Preview Icon */}
                 <div className="h-40 bg-gradient-to-b from-slate-50 to-slate-100/50 rounded-xl mb-5 flex items-center justify-center">
-                  <div className="w-20 h-28 bg-white rounded-lg shadow-md border border-slate-100 p-3 flex flex-col gap-2 group-hover:scale-105 transition-transform">
-                    <div className="w-5 h-5 rounded bg-blue-50 flex items-center justify-center">
-                      <span className="iconify text-[#3b82f6] text-xs" data-icon="solar:document-text-bold"></span>
-                    </div>
-                    <div className="space-y-1.5">
-                      <div className="h-1 bg-slate-100 rounded-full w-full"></div>
-                      <div className="h-1 bg-slate-50 rounded-full w-3/4"></div>
-                      <div className="h-1 bg-slate-50 rounded-full w-1/2"></div>
-                    </div>
-                    <div className="mt-auto space-y-1">
-                      <div className="h-0.5 bg-slate-50 rounded-full w-full"></div>
-                      <div className="h-0.5 bg-slate-50 rounded-full w-2/3"></div>
-                    </div>
+                  <div className="w-16 h-16 bg-white rounded-2xl shadow-md border border-slate-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <span className="iconify text-[#3b82f6] text-2xl" data-icon={doc.logo}></span>
                   </div>
                 </div>
 
