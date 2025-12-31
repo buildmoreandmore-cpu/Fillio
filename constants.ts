@@ -20,7 +20,7 @@ export const DOC_OPTIONS: DocOption[] = [
     timeEstimate: '~5 min',
     isPopular: true,
     icon: 'solar:chart-square-bold-duotone',
-    logo: 'simple-icons:google'
+    logo: 'solar:chart-2-bold'
   },
   {
     type: DocumentType.DEBT_SCHEDULE,
@@ -29,7 +29,7 @@ export const DOC_OPTIONS: DocOption[] = [
     outcomeDescription: 'Get crystal clear on your repayments and timelines. Perfect for debt restructuring.',
     timeEstimate: '~8 min',
     icon: 'solar:bill-list-bold-duotone',
-    logo: 'simple-icons:stripe'
+    logo: 'solar:checklist-bold'
   },
   {
     type: DocumentType.INCOME_STATEMENT,
@@ -38,7 +38,7 @@ export const DOC_OPTIONS: DocOption[] = [
     outcomeDescription: 'Understand your true cash flow and profitability over time. Vital for growth.',
     timeEstimate: '~10 min',
     icon: 'solar:graph-up-bold-duotone',
-    logo: 'simple-icons:intuit'
+    logo: 'solar:graph-up-bold'
   },
   {
     type: DocumentType.BALANCE_SHEET,
@@ -47,7 +47,7 @@ export const DOC_OPTIONS: DocOption[] = [
     outcomeDescription: 'A professional snapshot of equity. Essential for partners and major stakeholders.',
     timeEstimate: '~12 min',
     icon: 'solar:scale-bold-duotone',
-    logo: 'simple-icons:xero'
+    logo: 'solar:scale-bold'
   }
 ];
 
