@@ -320,6 +320,37 @@ const AdminCashFlowWorksheet: React.FC<AdminCashFlowWorksheetProps> = ({ onBack 
           </p>
         </div>
 
+        {/* Global Cash Flow Document Status */}
+        <div className="bg-white rounded-xl border border-slate-200 p-5 mb-4">
+          <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+            Global Cash Flow Status
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm">
+              <div className="w-4 h-4 rounded border border-slate-300 flex items-center justify-center flex-shrink-0">
+                <Icon name="check-circle" size={12} style={{ color: '#CBD5E1' }} />
+              </div>
+              <span className="text-slate-500">Personal Tax Return (1040) — <span className="text-slate-400 italic">manual entry below</span></span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <div className="w-4 h-4 rounded border border-slate-300 flex items-center justify-center flex-shrink-0">
+                <Icon name="check-circle" size={12} style={{ color: '#CBD5E1' }} />
+              </div>
+              <span className="text-slate-500">Personal Financial Statement — <span className="text-slate-400 italic">manual entry below</span></span>
+            </div>
+          </div>
+          <div className="mt-3 p-3 rounded-lg bg-amber-50 border border-amber-100">
+            <div className="flex items-start gap-2">
+              <Icon name="shield-check" size={14} style={{ color: GOLD }} />
+              <p className="text-xs text-amber-700 leading-relaxed">
+                Global cash flow requires both the Personal Tax Return (1040) and the Personal
+                Financial Statement. The True Readiness Score cannot be generated until both
+                are provided and verified.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Entity Type selector */}
         <div className="bg-white rounded-xl border border-slate-200 p-5 mb-4">
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
