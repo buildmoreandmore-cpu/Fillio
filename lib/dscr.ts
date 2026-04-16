@@ -2,7 +2,11 @@
  * DSCR (Debt Service Coverage Ratio) calculation, scoring, and rent addback.
  *
  * DSCR = Cash Available for Debt Service / Total Annual Debt Service
- * Goal: 1.25x or higher.
+ *
+ * Three thresholds:
+ *   Floor:     1.00x  — minimum to be considered
+ *   Benchmark: 1.25x  — what banks want to see
+ *   Leverage:  < 3.0  — debt to tangible net worth (separate metric)
  */
 
 // ─────────── Rent Addback ───────────
@@ -50,9 +54,9 @@ export function calculateDSCR(
 // ─────────── Scoring ───────────
 
 export function scoreDSCR(dscr: number): number {
-  if (dscr >= 1.25) return 30;
-  if (dscr >= 1.0) return 20;
-  return 0;
+  if (dscr >= 1.25) return 30;  // Meets benchmark — strong
+  if (dscr >= 1.0) return 15;   // Clears floor — marginal
+  return 0;                      // Below floor — critical
 }
 
 // ─────────── Display band ───────────
@@ -68,20 +72,24 @@ export function dscrBand(dscr: number): DSCRBand {
     return {
       label: 'Strong',
       color: '#1D9E75',
-      message: 'Your cash flow comfortably covers your debt obligations. This is what banks want to see.',
+      message: 'Your cash flow meets the 1.25x benchmark banks want to see. This puts you in a strong position.',
     };
   }
   if (dscr >= 1.0) {
     return {
       label: 'Marginal',
       color: '#BA7517',
-      message: 'Your cash flow covers your debt, but with thin margin. Banks may flag this.',
+      message:
+        'Your cash flow clears the 1.00x floor but falls short of the 1.25x benchmark. ' +
+        'This will likely trigger additional scrutiny and may result in a counteroffer at a lower loan amount, ' +
+        'additional collateral, or a guarantor requirement.',
     };
   }
   return {
-    label: 'Below threshold',
+    label: 'Critical',
     color: '#DC4444',
     message:
-      'Your cash flow does not cover your existing debt service. Banks will likely require additional collateral or a co-signer.',
+      'Your cash flow does not cover your existing debt service (below the 1.00x floor). ' +
+      'This is a hard stop for most lenders. The bank will not approve new debt when existing obligations are not covered.',
   };
 }

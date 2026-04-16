@@ -833,17 +833,29 @@ const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier 
             Add a debt obligation
           </button>
 
-          {/* Credit limit explainer */}
+          {/* LOC limit explainer */}
           {debts.some((d) =>
-            ['business_loc', 'sba_loc', 'cc_this_lender'].includes(d.type) && !d.isGraded
+            ['business_loc', 'sba_loc'].includes(d.type) && !d.isGraded
           ) && (
             <div className="mt-5">
               <InfoCallout>
-                <strong>Why we ask about your credit limits (not your balance)</strong>
+                <strong>Why we ask about your credit limit (not your balance) for lines of credit</strong>
                 <br />
-                For most lines of credit and credit cards at this lender, banks calculate based
-                on the full limit — because you could draw it all tomorrow. Credit cards at other
-                lenders use your current balance. We match the method banks actually use.
+                Banks calculate lines of credit based on the full limit — because you could draw it
+                all tomorrow. This is a conservative approach that reflects your maximum exposure.
+              </InfoCallout>
+            </div>
+          )}
+
+          {/* Credit card balance explainer */}
+          {debts.some((d) =>
+            ['cc_this_lender', 'cc_other_lender'].includes(d.type)
+          ) && (
+            <div className="mt-5">
+              <InfoCallout>
+                We calculate credit cards using your outstanding balance. Some lenders use the full
+                credit limit instead — your banker may apply a different method depending on their
+                institution's policy.
               </InfoCallout>
             </div>
           )}
@@ -997,14 +1009,49 @@ const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier 
                 className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-4"
                 style={{ backgroundColor: `${band.color}15`, color: band.color }}
               >
-                <Icon name="check-circle" size={14} />
+                <Icon name={dscr >= 1.25 ? 'check-circle' : 'shield-check'} size={14} />
                 {band.label} — {dscrPoints} pts
               </div>
-              <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
+              <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed mb-5">
                 {band.message}
               </p>
-              <div className="mt-3 text-xs text-slate-400">
-                Goal: 1.25x or higher
+
+              {/* Floor / Benchmark / Your Ratio breakdown */}
+              <div className="max-w-xs mx-auto space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-500">Floor</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold tabular-nums" style={{ color: NAVY }}>1.00x</span>
+                    {dscr >= 1.0 ? (
+                      <Icon name="check-circle" size={14} style={{ color: '#1D9E75' }} />
+                    ) : (
+                      <Icon name="shield-check" size={14} style={{ color: '#DC4444' }} />
+                    )}
+                    <span className="text-xs font-semibold" style={{ color: dscr >= 1.0 ? '#1D9E75' : '#DC4444' }}>
+                      {dscr >= 1.0 ? 'cleared' : 'not met'}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-500">Benchmark</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold tabular-nums" style={{ color: NAVY }}>1.25x</span>
+                    {dscr >= 1.25 ? (
+                      <Icon name="check-circle" size={14} style={{ color: '#1D9E75' }} />
+                    ) : (
+                      <Icon name="shield-check" size={14} style={{ color: '#BA7517' }} />
+                    )}
+                    <span className="text-xs font-semibold" style={{ color: dscr >= 1.25 ? '#1D9E75' : '#BA7517' }}>
+                      {dscr >= 1.25 ? 'met' : 'not yet met'}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-sm pt-2 border-t border-slate-100">
+                  <span className="font-semibold" style={{ color: NAVY }}>Your ratio</span>
+                  <span className="font-bold tabular-nums text-lg" style={{ color: band.color }}>
+                    {dscr.toFixed(2)}x
+                  </span>
+                </div>
               </div>
             </div>
 

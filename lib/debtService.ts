@@ -29,6 +29,13 @@ export interface DebtObligation {
   outstandingBalance?: number; // SBA LOC graded, CC other lender, CC graded
 }
 
+// ─────────── Credit card tooltip ───────────
+
+/** Shown next to credit card balance input in the UI. */
+export const CC_BALANCE_TOOLTIP =
+  'We calculate using your outstanding balance. Some lenders use the full credit limit ' +
+  'instead — your banker may apply a different method depending on their institution\'s policy.';
+
 // ─────────── Display labels ───────────
 
 export const DEBT_TYPE_LABELS: Record<DebtType, string> = {
@@ -44,9 +51,11 @@ export const DEBT_TYPE_LABELS: Record<DebtType, string> = {
 
 // ─────────── Helpers ───────────
 
-/** True if this debt type supports a "graded request" toggle. */
+/** True if this debt type supports a "graded request" toggle.
+ *  Credit cards use balance x .25 regardless of graded status in this tool,
+ *  so only LOCs benefit from a graded toggle. */
 export function supportsGraded(type: DebtType): boolean {
-  return ['business_loc', 'sba_loc', 'cc_this_lender', 'cc_other_lender'].includes(type);
+  return ['business_loc', 'sba_loc'].includes(type);
 }
 
 /** Returns which dollar field the UI should show for a given type + graded state. */
@@ -69,7 +78,7 @@ export function getRequiredField(
       return isGraded ? 'outstandingBalance' : 'creditLimit';
 
     case 'cc_this_lender':
-      return isGraded ? 'outstandingBalance' : 'creditLimit';
+      return 'outstandingBalance';
 
     case 'cc_other_lender':
       // Always outstanding balance — graded or not
@@ -132,13 +141,14 @@ export function calculateAnnualDebtService(debt: DebtObligation): number {
       return (debt.creditLimit ?? 0) * 0.192;
 
     // ── Business Credit Cards — This Lender ──
+    // BankReadyDocs uses outstanding balance for ALL credit cards.
+    // Balance is what the client can verify from their statement.
+    // NOTE: Some lenders (e.g. Chase) use the full credit limit instead.
+    // Tooltip: "We calculate using your outstanding balance. Some lenders use the
+    // full credit limit instead — your banker may apply a different method
+    // depending on their institution's policy."
     case 'cc_this_lender':
-      if (debt.isGraded) {
-        // Graded: Outstanding Balance x .25
-        return (debt.outstandingBalance ?? 0) * 0.25;
-      }
-      // Standard: Credit Limit x .25
-      return (debt.creditLimit ?? 0) * 0.25;
+      return (debt.outstandingBalance ?? 0) * 0.25;
 
     // ── Business Credit Cards — Other Lenders ──
     // Always Outstanding Balance x .25 — graded or not.
@@ -182,10 +192,7 @@ export function getCalculationDescription(debt: DebtObligation): string {
       return `${fmtDollar(debt.creditLimit ?? 0)} limit x .192`;
 
     case 'cc_this_lender':
-      if (debt.isGraded) {
-        return `${fmtDollar(debt.outstandingBalance ?? 0)} balance x .25`;
-      }
-      return `${fmtDollar(debt.creditLimit ?? 0)} limit x .25`;
+      return `${fmtDollar(debt.outstandingBalance ?? 0)} balance x .25`;
 
     case 'cc_other_lender':
       return `${fmtDollar(debt.outstandingBalance ?? 0)} balance x .25`;
