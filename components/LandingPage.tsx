@@ -459,11 +459,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
   const toggleTier = (key: TierKey) =>
     setExpandedTiers((s) => ({ ...s, [key]: !s[key] }));
 
-  const handleTierClick = (_tier: TierKey) => {
-    // TODO: wire to /api/create-checkout once Stripe price IDs for the
-    // BankReadyDocs tiers are configured. For now, route through the existing
-    // signup flow so we capture the lead.
-    onGetStarted();
+  const handleTierClick = (tier: TierKey) => {
+    if (tier === 'bank_ready' && onScorecard) {
+      // $297 Bank Ready → Scorecard tool (which has the $297 checkout CTA)
+      onScorecard();
+    } else {
+      // Higher tiers ($2,497 / $7,997) → signup to capture the lead
+      onGetStarted();
+    }
   };
 
   return (

@@ -36,7 +36,7 @@ export default async function handler(req: any, res: any) {
             quantity: 1,
           },
         ],
-        success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}&type=one-time`,
+        success_url: `${successUrl}${successUrl.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}&type=one-time`,
         cancel_url: cancelUrl,
         metadata: {
           userId: userId || 'guest',
@@ -65,7 +65,7 @@ export default async function handler(req: any, res: any) {
             quantity: 1,
           },
         ],
-        success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}&type=subscription`,
+        success_url: `${successUrl}${successUrl.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}&type=subscription`,
         cancel_url: cancelUrl,
         metadata: {
           userId: userId || 'guest',
@@ -90,7 +90,7 @@ export default async function handler(req: any, res: any) {
             quantity: 1,
           },
         ],
-        success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}&type=scorecard`,
+        success_url: `${successUrl}${successUrl.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}&type=scorecard`,
         cancel_url: cancelUrl,
         metadata: {
           userId: userId || 'guest',

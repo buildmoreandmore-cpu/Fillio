@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { DocumentType, PFSData, AppState } from './types';
 import { DOC_OPTIONS, PFS_STEPS } from './constants';
 import Layout from './components/Layout';
@@ -28,12 +28,32 @@ const App: React.FC = () => {
   const [hasPaidForDoc, setHasPaidForDoc] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup' | null>(null);
   const [view, setView] = useState<'landing' | 'flow' | 'review' | 'paywall' | 'scorecard' | 'admin-worksheet' | 'admin'>('landing');
+  const [pendingScorecardUpgrade, setPendingScorecardUpgrade] = useState(false);
   const [search, setSearch] = useState('');
   const [state, setState] = useState<AppState>({
     selectedDoc: null,
     currentStep: 0,
     data: INITIAL_PFS_DATA
   });
+
+  // Handle Stripe checkout return — detect ?checkout=success on page load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('checkout') === 'success') {
+      const type = params.get('type');
+      if (type === 'subscription') {
+        setIsPro(true);
+        setView('review');
+      } else if (type === 'one-time') {
+        setHasPaidForDoc(true);
+        setView('review');
+      } else if (type === 'scorecard') {
+        setView('scorecard');
+      }
+      // Clean the URL without reloading
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   const handleLogin = () => {
     setIsLoggedIn(true);
@@ -97,11 +117,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleScorecardUpgrade = async () => {
-    if (!isLoggedIn) {
-      setAuthMode('signup');
-      return;
-    }
+  const triggerScorecardCheckout = useCallback(async () => {
     try {
       const response = await fetch('/api/create-checkout', {
         method: 'POST',
@@ -118,7 +134,24 @@ const App: React.FC = () => {
     } catch {
       // Checkout creation failed — stay on page
     }
+  }, []);
+
+  const handleScorecardUpgrade = async () => {
+    if (!isLoggedIn) {
+      setPendingScorecardUpgrade(true);
+      setAuthMode('signup');
+      return;
+    }
+    await triggerScorecardCheckout();
   };
+
+  // After login, auto-trigger pending scorecard checkout
+  useEffect(() => {
+    if (isLoggedIn && pendingScorecardUpgrade) {
+      setPendingScorecardUpgrade(false);
+      triggerScorecardCheckout();
+    }
+  }, [isLoggedIn, pendingScorecardUpgrade, triggerScorecardCheckout]);
 
   // Admin dashboard — requires authentication
   if (view === 'admin') {
@@ -148,11 +181,21 @@ const App: React.FC = () => {
   // Detailed breakdown (EBIDA, DSCR, methodology) is gated behind Tier 1+
   if (view === 'scorecard') {
     return (
-      <CapacityScorecard
-        onBack={() => setView('landing')}
-        userTier="free"
-        onUpgrade={handleScorecardUpgrade}
-      />
+      <>
+        <CapacityScorecard
+          onBack={() => setView('landing')}
+          userTier="free"
+          onUpgrade={handleScorecardUpgrade}
+        />
+        {authMode && (
+          <AuthModal
+            mode={authMode}
+            onClose={() => { setAuthMode(null); setPendingScorecardUpgrade(false); }}
+            onSuccess={handleLogin}
+            setMode={setAuthMode}
+          />
+        )}
+      </>
     );
   }
 
