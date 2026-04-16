@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { PFSData } from '../types';
 import { useAuth } from '../lib/auth';
-import { isStripeConfigured } from '../lib/stripe';
+// Stripe checkout handled via /api/create-checkout
 
 interface PaywallProps {
   data: PFSData;
@@ -18,13 +18,6 @@ const Paywall: React.FC<PaywallProps> = ({ data, onBack, onSuccess, onSignup }) 
 
   const handleCheckout = async (priceType: 'one-time' | 'subscription') => {
     setError(null);
-
-    // If Stripe not configured, use demo mode
-    if (!isStripeConfigured()) {
-      onSuccess(priceType);
-      return;
-    }
-
     setIsLoading(priceType);
 
     try {
@@ -48,15 +41,9 @@ const Paywall: React.FC<PaywallProps> = ({ data, onBack, onSuccess, onSignup }) 
 
       if (url) {
         window.location.href = url;
-      } else {
-        // Fallback to demo mode if no URL returned
-        onSuccess(priceType);
       }
     } catch (err: any) {
-      console.error('Checkout error:', err);
-      setError('Payment system unavailable. Using demo mode.');
-      // Fallback to demo mode
-      setTimeout(() => onSuccess(priceType), 1500);
+      setError('Something went wrong. Please try again.');
     } finally {
       setIsLoading(null);
     }
@@ -248,9 +235,9 @@ const Paywall: React.FC<PaywallProps> = ({ data, onBack, onSuccess, onSignup }) 
           {/* Pro Unlimited - Best Value */}
           <div
             onClick={() => !isLoading && handleCheckout('subscription')}
-            className={`group relative bg-white border-2 border-blue-500 rounded-2xl p-6 cursor-pointer transition-all hover:shadow-xl hover:shadow-blue-500/10 ${isLoading ? 'opacity-75 pointer-events-none' : ''}`}
+            className={`group relative bg-white border-2 border-[#1D9E75] rounded-2xl p-6 cursor-pointer transition-all hover:shadow-xl hover:shadow-emerald-500/10 ${isLoading ? 'opacity-75 pointer-events-none' : ''}`}
           >
-            <div className="absolute -top-3 right-6 bg-blue-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full flex items-center gap-1">
+            <div className="absolute -top-3 right-6 bg-[#1D9E75] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full flex items-center gap-1">
               <span className="iconify text-yellow-300" data-icon="solar:star-bold"></span>
               Best Value
             </div>
@@ -263,20 +250,20 @@ const Paywall: React.FC<PaywallProps> = ({ data, onBack, onSuccess, onSignup }) 
             </div>
             <ul className="space-y-2.5 mb-5">
               <li className="flex items-center gap-2.5 text-sm text-slate-600">
-                <span className="iconify text-blue-500" data-icon="solar:infinity-bold"></span>
+                <span className="iconify text-emerald-500" data-icon="solar:infinity-bold"></span>
                 Unlimited document exports
               </li>
               <li className="flex items-center gap-2.5 text-sm text-slate-600">
-                <span className="iconify text-blue-500" data-icon="solar:cloud-bold"></span>
+                <span className="iconify text-emerald-500" data-icon="solar:cloud-bold"></span>
                 Cloud save & multi-device sync
               </li>
             </ul>
 
             {/* Bank Sync Feature Highlight */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 mb-5 border border-blue-100">
+            <div className="bg-gradient-to-r from-emerald-50 to-emerald-50 rounded-xl p-4 mb-5 border border-emerald-100">
               <div className="flex items-center gap-2 mb-2">
-                <span className="iconify text-blue-600 text-lg" data-icon="solar:bolt-bold"></span>
-                <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">Bank Sync</span>
+                <span className="iconify text-emerald-800 text-lg" data-icon="solar:bolt-bold"></span>
+                <span className="text-xs font-bold text-emerald-900 uppercase tracking-wider">Bank Sync</span>
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex-1">
@@ -286,16 +273,16 @@ const Paywall: React.FC<PaywallProps> = ({ data, onBack, onSuccess, onSignup }) 
                 </div>
                 <span className="iconify text-slate-400" data-icon="solar:arrow-right-linear"></span>
                 <div className="flex-1">
-                  <div className="text-[10px] text-blue-600 font-semibold mb-1">With Pro</div>
-                  <div className="h-2 bg-blue-500 rounded-full w-1/6"></div>
-                  <div className="text-[10px] text-blue-600 font-semibold mt-1">~30 seconds</div>
+                  <div className="text-[10px] text-emerald-800 font-semibold mb-1">With Pro</div>
+                  <div className="h-2 bg-[#1D9E75] rounded-full w-1/6"></div>
+                  <div className="text-[10px] text-emerald-800 font-semibold mt-1">~30 seconds</div>
                 </div>
               </div>
             </div>
 
             <button
               disabled={!!isLoading}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full bg-[#1D9E75] hover:bg-[#0B2820] text-white py-3.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-emerald-500/25 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isLoading === 'subscription' ? (
                 <>
@@ -330,7 +317,7 @@ const Paywall: React.FC<PaywallProps> = ({ data, onBack, onSuccess, onSignup }) 
             </div>
             <button
               onClick={onSignup}
-              className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+              className="text-sm font-medium text-emerald-800 hover:text-emerald-900 transition-colors"
             >
               Save draft — free
             </button>

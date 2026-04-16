@@ -121,7 +121,7 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
                     placeholder={isLast ? "Add description..." : "Description"}
                     value={item.description}
                     onChange={(e) => handleUpdateItem(field, item.id, { description: e.target.value })}
-                    className="w-full bg-white border-2 border-slate-200 rounded-xl py-4 px-5 outline-none focus:border-[#3b82f6] focus:ring-4 focus:ring-blue-50 transition-all text-sm font-medium text-slate-800 placeholder:text-slate-400"
+                    className="w-full bg-white border-2 border-slate-200 rounded-xl py-4 px-5 outline-none focus:border-[#1D9E75] focus:ring-4 focus:ring-emerald-50 transition-all text-sm font-medium text-slate-800 placeholder:text-slate-400"
                   />
                 </div>
                 <div className="w-36 relative">
@@ -131,7 +131,7 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
                     placeholder="0"
                     value={item.value || ''}
                     onChange={(e) => handleUpdateItem(field, item.id, { value: parseFloat(e.target.value) || 0 })}
-                    className="w-full bg-white border-2 border-slate-200 rounded-xl py-4 pl-8 pr-4 outline-none focus:border-[#3b82f6] focus:ring-4 focus:ring-blue-50 transition-all text-sm font-semibold text-slate-800 text-right placeholder:text-slate-400"
+                    className="w-full bg-white border-2 border-slate-200 rounded-xl py-4 pl-8 pr-4 outline-none focus:border-[#1D9E75] focus:ring-4 focus:ring-emerald-50 transition-all text-sm font-semibold text-slate-800 text-right placeholder:text-slate-400"
                   />
                 </div>
                 <div className="w-10">
@@ -190,7 +190,7 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
                     index < state.currentStep
                       ? 'bg-emerald-500 text-white'
                       : index === state.currentStep
-                        ? 'bg-[#1e3a5f] text-white shadow-lg shadow-[#1e3a5f]/30'
+                        ? 'bg-[#0B2820] text-white shadow-lg shadow-[#0B2820]/30'
                         : 'bg-slate-100 text-slate-400'
                   }`}>
                     {index < state.currentStep ? (
@@ -218,11 +218,11 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
           <div className="flex items-center gap-4">
             <div className="flex-grow h-2 bg-slate-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-[#3b82f6] to-[#1e3a5f] transition-all duration-500 ease-out"
+                className="h-full bg-gradient-to-r from-[#1D9E75] to-[#0B2820] transition-all duration-500 ease-out"
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <span className="text-sm font-semibold text-[#3b82f6] min-w-[3rem] text-right">{progress}%</span>
+            <span className="text-sm font-semibold text-[#1D9E75] min-w-[3rem] text-right">{progress}%</span>
           </div>
         </div>
       </div>
@@ -239,18 +239,18 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
                   onClick={() => setInputMode('chat')}
                   className={`flex-1 p-4 rounded-xl border-2 transition-all ${
                     inputMode === 'chat'
-                      ? 'border-[#3b82f6] bg-blue-50'
+                      ? 'border-[#1D9E75] bg-emerald-50'
                       : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      inputMode === 'chat' ? 'bg-[#3b82f6] text-white' : 'bg-slate-100 text-slate-400'
+                      inputMode === 'chat' ? 'bg-[#1D9E75] text-white' : 'bg-slate-100 text-slate-400'
                     }`}>
                       <span className="iconify text-xl" data-icon="solar:chat-round-dots-bold"></span>
                     </div>
                     <div className="text-left">
-                      <p className={`text-sm font-semibold ${inputMode === 'chat' ? 'text-[#3b82f6]' : 'text-slate-700'}`}>
+                      <p className={`text-sm font-semibold ${inputMode === 'chat' ? 'text-[#1D9E75]' : 'text-slate-700'}`}>
                         Describe it
                       </p>
                       <p className="text-xs text-slate-500">AI extracts details</p>
@@ -261,18 +261,18 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
                   onClick={() => setInputMode('form')}
                   className={`flex-1 p-4 rounded-xl border-2 transition-all ${
                     inputMode === 'form'
-                      ? 'border-[#3b82f6] bg-blue-50'
+                      ? 'border-[#1D9E75] bg-emerald-50'
                       : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      inputMode === 'form' ? 'bg-[#3b82f6] text-white' : 'bg-slate-100 text-slate-400'
+                      inputMode === 'form' ? 'bg-[#1D9E75] text-white' : 'bg-slate-100 text-slate-400'
                     }`}>
                       <span className="iconify text-xl" data-icon="solar:list-bold"></span>
                     </div>
                     <div className="text-left">
-                      <p className={`text-sm font-semibold ${inputMode === 'form' ? 'text-[#3b82f6]' : 'text-slate-700'}`}>
+                      <p className={`text-sm font-semibold ${inputMode === 'form' ? 'text-[#1D9E75]' : 'text-slate-700'}`}>
                         Fill fields
                       </p>
                       <p className="text-xs text-slate-500">Enter manually</p>
@@ -289,7 +289,7 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
             {state.currentStep === 0 && (
               <div className="space-y-8">
                 <div className="flex items-start gap-4 mb-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#3b82f6] to-[#1e3a5f] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/20">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#1D9E75] to-[#0B2820] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/20">
                     <span className="iconify text-white text-xl" data-icon="solar:user-bold"></span>
                   </div>
                   <div>
@@ -308,7 +308,7 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
                     value={state.data.fullName}
                     onKeyDown={(e) => e.key === 'Enter' && onNext()}
                     onChange={(e) => onUpdate({ fullName: e.target.value })}
-                    className="w-full bg-white border-2 border-slate-200 rounded-xl py-4 px-5 outline-none focus:border-[#3b82f6] focus:ring-4 focus:ring-blue-50 transition-all text-base font-medium text-slate-800 placeholder:text-slate-400"
+                    className="w-full bg-white border-2 border-slate-200 rounded-xl py-4 px-5 outline-none focus:border-[#1D9E75] focus:ring-4 focus:ring-emerald-50 transition-all text-base font-medium text-slate-800 placeholder:text-slate-400"
                     placeholder="Enter your full legal name"
                   />
                 </div>
@@ -321,7 +321,7 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
                     value={state.data.asOfDate}
                     onKeyDown={(e) => e.key === 'Enter' && onNext()}
                     onChange={(e) => onUpdate({ asOfDate: e.target.value })}
-                    className="w-full bg-white border-2 border-slate-200 rounded-xl py-4 px-5 outline-none focus:border-[#3b82f6] focus:ring-4 focus:ring-blue-50 transition-all text-base font-medium text-slate-800"
+                    className="w-full bg-white border-2 border-slate-200 rounded-xl py-4 px-5 outline-none focus:border-[#1D9E75] focus:ring-4 focus:ring-emerald-50 transition-all text-base font-medium text-slate-800"
                   />
                 </div>
 
@@ -336,7 +336,7 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
                   </button>
                   <button
                     onClick={onNext}
-                    className="bg-[#1e3a5f] hover:bg-[#162d4a] text-white px-8 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-[#1e3a5f]/20 hover:shadow-xl flex items-center gap-2"
+                    className="bg-[#0B2820] hover:bg-[#071E17] text-white px-8 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-[#0B2820]/20 hover:shadow-xl flex items-center gap-2"
                   >
                     Continue
                     <span className="iconify" data-icon="solar:arrow-right-linear"></span>
@@ -368,7 +368,7 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
                     </button>
                     <button
                       onClick={onNext}
-                      className="bg-[#1e3a5f] hover:bg-[#162d4a] text-white px-8 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-[#1e3a5f]/20 hover:shadow-xl flex items-center gap-2"
+                      className="bg-[#0B2820] hover:bg-[#071E17] text-white px-8 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-[#0B2820]/20 hover:shadow-xl flex items-center gap-2"
                     >
                       Continue
                       <span className="iconify" data-icon="solar:arrow-right-linear"></span>
@@ -390,7 +390,7 @@ const StepFlow: React.FC<StepFlowProps> = ({ state, onNext, onBack, onUpdate }) 
                 </p>
                 <button
                   onClick={onNext}
-                  className="bg-[#1e3a5f] hover:bg-[#162d4a] text-white px-8 py-4 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-[#1e3a5f]/20 hover:shadow-xl inline-flex items-center gap-2"
+                  className="bg-[#0B2820] hover:bg-[#071E17] text-white px-8 py-4 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-[#0B2820]/20 hover:shadow-xl inline-flex items-center gap-2"
                 >
                   Review & Download
                   <span className="iconify" data-icon="solar:arrow-right-linear"></span>

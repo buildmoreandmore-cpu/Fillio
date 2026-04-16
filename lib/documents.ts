@@ -26,7 +26,7 @@ export const getUserDocuments = async (userId: string): Promise<Document[]> => {
     .order('updated_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching documents:', error);
+    // Fetch failed
     return [];
   }
 
@@ -44,7 +44,7 @@ export const getDocument = async (documentId: string): Promise<Document | null> 
     .single();
 
   if (error) {
-    console.error('Error fetching document:', error);
+    // Fetch failed
     return null;
   }
 
@@ -71,7 +71,7 @@ export const createDocument = async (
     .single();
 
   if (error) {
-    console.error('Error creating document:', error);
+    // Create failed
     return null;
   }
 
@@ -97,7 +97,7 @@ export const updateDocument = async (
     .single();
 
   if (error) {
-    console.error('Error updating document:', error);
+    // Update failed
     return null;
   }
 
@@ -114,7 +114,7 @@ export const deleteDocument = async (documentId: string): Promise<boolean> => {
     .eq('id', documentId);
 
   if (error) {
-    console.error('Error deleting document:', error);
+    // Delete failed
     return false;
   }
 
@@ -139,7 +139,7 @@ export const uploadPDF = async (
     });
 
   if (uploadError) {
-    console.error('Error uploading PDF:', uploadError);
+    // Upload failed
     return null;
   }
 

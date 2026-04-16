@@ -54,7 +54,7 @@ export default async function handler(req: any, res: any) {
             price_data: {
               currency: 'usd',
               product_data: {
-                name: 'Fillio Pro',
+                name: 'BankReadyDocs Pro',
                 description: 'Unlimited documents, bank sync, cloud storage',
               },
               unit_amount: 1200, // $12.00

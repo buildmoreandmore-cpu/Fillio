@@ -158,7 +158,6 @@ const ChatMode: React.FC<ChatModeProps> = ({
         setError("I couldn't find any items. Try being more specific about amounts.");
       }
     } catch (err) {
-      console.error('Parse error:', err);
       setError("Something went wrong. Try again or switch to form mode.");
     } finally {
       setIsProcessing(false);
@@ -255,8 +254,8 @@ const ChatMode: React.FC<ChatModeProps> = ({
               key={index}
               className="flex items-center gap-4 p-4 bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all group"
             >
-              <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                <span className="iconify text-[#3b82f6] text-lg" data-icon={getCategoryIcon(item.category)}></span>
+              <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="iconify text-[#1D9E75] text-lg" data-icon={getCategoryIcon(item.category)}></span>
               </div>
               <div className="flex-grow min-w-0">
                 <input
@@ -272,7 +271,7 @@ const ChatMode: React.FC<ChatModeProps> = ({
                   type="number"
                   value={item.value}
                   onChange={(e) => handleEditItem(index, 'value', parseFloat(e.target.value) || 0)}
-                  className="w-24 text-right bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 outline-none focus:border-[#3b82f6] focus:ring-2 focus:ring-blue-50"
+                  className="w-24 text-right bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 outline-none focus:border-[#1D9E75] focus:ring-2 focus:ring-emerald-50"
                 />
                 <button
                   onClick={() => handleRemoveItem(index)}
@@ -310,14 +309,14 @@ const ChatMode: React.FC<ChatModeProps> = ({
         <div className="flex items-center justify-between pt-2">
           <button
             onClick={handleAddMore}
-            className="text-sm font-medium text-[#3b82f6] hover:text-[#2563eb] transition-colors flex items-center gap-1"
+            className="text-sm font-medium text-[#1D9E75] hover:text-[#168A63] transition-colors flex items-center gap-1"
           >
             <span className="iconify" data-icon="solar:add-circle-linear"></span>
             Add More
           </button>
           <button
             onClick={handleConfirm}
-            className="bg-[#1e3a5f] hover:bg-[#162d4a] text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-[#1e3a5f]/20 hover:shadow-xl flex items-center gap-2"
+            className="bg-[#0B2820] hover:bg-[#071E17] text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-[#0B2820]/20 hover:shadow-xl flex items-center gap-2"
           >
             Looks Good
             <span className="iconify" data-icon="solar:arrow-right-linear"></span>
@@ -332,7 +331,7 @@ const ChatMode: React.FC<ChatModeProps> = ({
     <div className="space-y-6">
       {/* AI Prompt */}
       <div className="flex items-start gap-4">
-        <div className="w-12 h-12 bg-gradient-to-br from-[#3b82f6] to-[#1e3a5f] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/20">
+        <div className="w-12 h-12 bg-gradient-to-br from-[#1D9E75] to-[#0B2820] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/20">
           <span className="iconify text-white text-xl" data-icon="solar:chat-round-dots-bold"></span>
         </div>
         <div>
@@ -351,12 +350,12 @@ const ChatMode: React.FC<ChatModeProps> = ({
           placeholder="Type naturally — AI will extract the details..."
           rows={4}
           disabled={isProcessing}
-          className="w-full bg-white border-2 border-slate-200 rounded-2xl py-4 px-5 outline-none focus:border-[#3b82f6] focus:ring-4 focus:ring-blue-50 transition-all text-base text-slate-800 placeholder:text-slate-400 resize-none disabled:opacity-50"
+          className="w-full bg-white border-2 border-slate-200 rounded-2xl py-4 px-5 outline-none focus:border-[#1D9E75] focus:ring-4 focus:ring-emerald-50 transition-all text-base text-slate-800 placeholder:text-slate-400 resize-none disabled:opacity-50"
         />
         {isProcessing && (
           <div className="absolute inset-0 bg-white/90 rounded-2xl flex items-center justify-center">
             <div className="flex items-center gap-3">
-              <div className="w-5 h-5 border-2 border-[#3b82f6] border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-5 h-5 border-2 border-[#1D9E75] border-t-transparent rounded-full animate-spin"></div>
               <span className="text-sm font-medium text-slate-600">Understanding your input...</span>
             </div>
           </div>
@@ -403,7 +402,7 @@ const ChatMode: React.FC<ChatModeProps> = ({
           disabled={isProcessing}
           className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 ${
             input.trim()
-              ? 'bg-[#1e3a5f] hover:bg-[#162d4a] text-white shadow-lg shadow-[#1e3a5f]/20 hover:shadow-xl'
+              ? 'bg-[#0B2820] hover:bg-[#071E17] text-white shadow-lg shadow-[#0B2820]/20 hover:shadow-xl'
               : 'bg-slate-100 text-slate-400 cursor-default'
           }`}
         >

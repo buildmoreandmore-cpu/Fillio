@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../lib/auth';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 
 interface AuthModalProps {
   mode: 'signin' | 'signup';
@@ -11,7 +11,7 @@ interface AuthModalProps {
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode }) => {
-  const { signIn, signUp, isConfigured } = useAuth();
+  const { signIn, signUp } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,12 +24,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
     setIsLoading(true);
 
     try {
-      if (!isConfigured) {
-        // Demo mode - just call onSuccess
-        onSuccess();
-        return;
-      }
-
       if (mode === 'signup') {
         const { error } = await signUp(email, password, fullName);
         if (error) {
@@ -53,11 +47,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
   };
 
   const handleGoogleSignIn = async () => {
-    if (!isConfigured) {
-      onSuccess();
-      return;
-    }
-
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -77,11 +66,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
   const handleForgotPassword = async () => {
     if (!email) {
       setError('Please enter your email address');
-      return;
-    }
-
-    if (!isConfigured) {
-      setError('Password reset not available in demo mode');
       return;
     }
 
@@ -133,12 +117,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
           </div>
         )}
 
-        {!isConfigured && (
-          <div className="mb-6 p-4 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-700">
-            <span className="font-bold">Demo Mode:</span> Supabase not configured. Auth will be simulated.
-          </div>
-        )}
-
         <form className="space-y-4" onSubmit={handleSubmit}>
           {mode === 'signup' && (
             <div className="space-y-2">
@@ -150,7 +128,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
                 onChange={(e) => setFullName(e.target.value)}
                 required
                 disabled={isLoading}
-                className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300 disabled:opacity-50"
+                className="w-full bg-slate-50 border-2 border-transparent focus:border-emerald-100 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300 disabled:opacity-50"
               />
             </div>
           )}
@@ -164,7 +142,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isLoading}
-              className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300 disabled:opacity-50"
+              className="w-full bg-slate-50 border-2 border-transparent focus:border-emerald-100 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300 disabled:opacity-50"
             />
           </div>
 
@@ -178,7 +156,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
               required
               minLength={6}
               disabled={isLoading}
-              className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300 disabled:opacity-50"
+              className="w-full bg-slate-50 border-2 border-transparent focus:border-emerald-100 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300 disabled:opacity-50"
             />
           </div>
 
@@ -187,7 +165,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
                 <button
                   type="button"
                   onClick={handleForgotPassword}
-                  className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+                  className="text-[10px] font-black text-[#1D9E75] uppercase tracking-widest hover:underline"
                 >
                   Forgot Password?
                 </button>
@@ -197,7 +175,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-2xl text-[12px] font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-500/20 transition-all active:scale-95 mt-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-[#0B2820] hover:bg-[#071E17] text-white py-5 rounded-2xl text-[12px] font-black uppercase tracking-[0.2em] shadow-xl shadow-[#0B2820]/20 transition-all active:scale-95 mt-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
@@ -237,7 +215,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
                 setMode(mode === 'signin' ? 'signup' : 'signin');
                 setError(null);
               }}
-              className="text-blue-600 hover:underline"
+              className="text-[#1D9E75] hover:underline"
             >
               {mode === 'signin' ? 'Sign Up' : 'Sign In'}
             </button>

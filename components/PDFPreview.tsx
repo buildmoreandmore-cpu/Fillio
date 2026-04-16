@@ -85,7 +85,7 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, totalAssets, totalLiabili
             </div>
             <div className="flex justify-between items-center border-t border-slate-200 pt-2 mt-2">
               <span className="text-sm font-black uppercase text-slate-900">Calculated Net Worth</span>
-              <span className="text-lg font-black text-blue-600">{formatCurrency(netWorth)}</span>
+              <span className="text-lg font-black text-emerald-800">{formatCurrency(netWorth)}</span>
             </div>
           </div>
         </div>
@@ -105,7 +105,7 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({ data, totalAssets, totalLiabili
 
       {/* Footer */}
       <div className="mt-auto pt-8 flex justify-between text-[10px] text-slate-400 font-medium border-t border-slate-100">
-        <p>Generated via Fillio. This document serves as a representation of personal finances based on information provided by the user.</p>
+        <p>Generated via BankReadyDocs. This document serves as a representation of personal finances based on information provided by the user.</p>
         <p>Page 1 of 1</p>
       </div>
     </div>

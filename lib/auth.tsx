@@ -66,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .single();
 
     if (error) {
-      console.error('Error fetching profile:', error);
+      // Profile fetch failed — user can retry
     } else {
       setProfile(data);
     }
@@ -102,7 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
       if (profileError) {
-        console.error('Error creating profile:', profileError);
+        // Profile creation failed — trigger will handle it
       }
     }
 

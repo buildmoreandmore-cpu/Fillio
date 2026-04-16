@@ -95,7 +95,7 @@ const Summary: React.FC<SummaryProps> = ({ data, isLocked, onExportRequested, on
           setAIReview(review);
         }
       } catch (error) {
-        console.error('AI review failed:', error);
+        // AI review unavailable — continue without it
       } finally {
         setIsReviewing(false);
       }
@@ -118,7 +118,6 @@ const Summary: React.FC<SummaryProps> = ({ data, isLocked, onExportRequested, on
     try {
       await downloadPDF(data);
     } catch (error) {
-      console.error('Export failed', error);
       alert('Failed to generate PDF. Please try again.');
     } finally {
       setIsExporting(false);
@@ -147,7 +146,7 @@ const Summary: React.FC<SummaryProps> = ({ data, isLocked, onExportRequested, on
     switch (type) {
       case 'error': return 'text-red-500 bg-red-50 border-red-100';
       case 'warning': return 'text-amber-500 bg-amber-50 border-amber-100';
-      case 'suggestion': return 'text-blue-500 bg-blue-50 border-blue-100';
+      case 'suggestion': return 'text-emerald-500 bg-emerald-50 border-emerald-100';
       default: return 'text-slate-500 bg-slate-50 border-slate-100';
     }
   };
@@ -177,7 +176,7 @@ const Summary: React.FC<SummaryProps> = ({ data, isLocked, onExportRequested, on
                 <p className="text-xl font-bold text-slate-600">{formatCurrency(totalLiabilities)}</p>
               </div>
               <div className="pt-4 border-t border-slate-100">
-                <p className="text-[10px] font-bold text-[#3b82f6] uppercase tracking-widest mb-1">Net Worth</p>
+                <p className="text-[10px] font-bold text-[#1D9E75] uppercase tracking-widest mb-1">Net Worth</p>
                 <p className="text-2xl font-bold text-slate-900">{formatCurrency(netWorth)}</p>
               </div>
             </div>
@@ -189,7 +188,7 @@ const Summary: React.FC<SummaryProps> = ({ data, isLocked, onExportRequested, on
                 className={`w-full py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
                   isExporting
                     ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                    : 'bg-[#1e3a5f] hover:bg-[#162d4a] text-white'
+                    : 'bg-[#0B2820] hover:bg-[#071E17] text-white'
                 }`}
               >
                 <span className="iconify text-lg" data-icon={isLocked ? "solar:lock-bold" : "solar:download-bold"}></span>
@@ -219,13 +218,13 @@ const Summary: React.FC<SummaryProps> = ({ data, isLocked, onExportRequested, on
                 className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-[#3b82f6] to-[#1e3a5f] rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-[#1D9E75] to-[#0B2820] rounded-lg flex items-center justify-center">
                     <span className="iconify text-white text-sm" data-icon="solar:magic-stick-bold"></span>
                   </div>
                   <span className="text-sm font-semibold text-slate-800">AI Review</span>
                 </div>
                 {isReviewing ? (
-                  <div className="w-4 h-4 border-2 border-[#3b82f6] border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-[#1D9E75] border-t-transparent rounded-full animate-spin"></div>
                 ) : (
                   <span className="iconify text-slate-400" data-icon={showInsights ? "solar:alt-arrow-up-linear" : "solar:alt-arrow-down-linear"}></span>
                 )}
@@ -311,14 +310,14 @@ const Summary: React.FC<SummaryProps> = ({ data, isLocked, onExportRequested, on
             {isLocked && (
                <div className="absolute inset-x-0 bottom-0 top-[60px] flex items-center justify-center pointer-events-none">
                   <div className="bg-white/90 backdrop-blur-md px-8 py-6 rounded-2xl shadow-lg border border-slate-100 text-center flex flex-col items-center gap-3 pointer-events-auto mb-20 transform -translate-y-1/2">
-                    <div className="w-14 h-14 bg-blue-50 text-[#3b82f6] rounded-xl flex items-center justify-center mb-2">
+                    <div className="w-14 h-14 bg-emerald-50 text-[#1D9E75] rounded-xl flex items-center justify-center mb-2">
                       <span className="iconify text-2xl" data-icon="solar:document-add-bold"></span>
                     </div>
                     <h4 className="text-lg font-bold text-slate-900">Your doc is ready</h4>
                     <p className="text-slate-500 text-sm max-w-[220px]">Download your professional, bank-ready PDF.</p>
                     <button
                       onClick={onExportRequested}
-                      className="mt-2 bg-[#1e3a5f] hover:bg-[#162d4a] text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all"
+                      className="mt-2 bg-[#0B2820] hover:bg-[#071E17] text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all"
                     >
                       Unlock Now
                     </button>

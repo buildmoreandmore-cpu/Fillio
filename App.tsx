@@ -8,6 +8,9 @@ import Summary from './components/Summary';
 import LandingPage from './components/LandingPage';
 import AuthModal from './components/AuthModal';
 import Paywall from './components/Paywall';
+import CapacityScorecard from './components/CapacityScorecard';
+import AdminCashFlowWorksheet from './components/AdminCashFlowWorksheet';
+import AdminShell from './components/admin/AdminShell';
 
 const INITIAL_PFS_DATA: PFSData = {
   fullName: '',
@@ -24,7 +27,7 @@ const App: React.FC = () => {
   const [isPro, setIsPro] = useState(false);
   const [hasPaidForDoc, setHasPaidForDoc] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup' | null>(null);
-  const [view, setView] = useState<'landing' | 'flow' | 'review' | 'paywall'>('landing');
+  const [view, setView] = useState<'landing' | 'flow' | 'review' | 'paywall' | 'scorecard' | 'admin-worksheet' | 'admin'>('landing');
   const [search, setSearch] = useState('');
   const [state, setState] = useState<AppState>({
     selectedDoc: null,
@@ -94,14 +97,51 @@ const App: React.FC = () => {
     }
   };
 
+  // Admin dashboard — requires authentication
+  if (view === 'admin') {
+    if (!isLoggedIn) {
+      setView('landing');
+      setAuthMode('signin');
+      return null;
+    }
+    return (
+      <AdminShell onExit={() => setView('landing')} />
+    );
+  }
+
+  // Admin worksheet — requires authentication
+  if (view === 'admin-worksheet') {
+    if (!isLoggedIn) {
+      setView('landing');
+      setAuthMode('signin');
+      return null;
+    }
+    return (
+      <AdminCashFlowWorksheet onBack={() => setView('landing')} />
+    );
+  }
+
+  // Scorecard is accessible regardless of auth state (free tool)
+  // Detailed breakdown (EBIDA, DSCR, methodology) is gated behind Tier 1+
+  if (view === 'scorecard') {
+    return (
+      <CapacityScorecard
+        onBack={() => setView('landing')}
+        userTier="free"
+        onUpgrade={() => setAuthMode('signup')}
+      />
+    );
+  }
+
   // If not logged in and on landing, show public landing page
   if (!isLoggedIn && view === 'landing') {
     return (
       <div className="relative">
-        <LandingPage 
-          onGetStarted={() => setAuthMode('signup')} 
+        <LandingPage
+          onGetStarted={() => setAuthMode('signup')}
           onSignIn={() => setAuthMode('signin')}
           onDocClick={selectDocument}
+          onScorecard={() => setView('scorecard')}
         />
         {authMode && (
           <AuthModal 
@@ -137,13 +177,13 @@ const App: React.FC = () => {
             <div className="flex-grow overflow-y-auto px-6 md:px-12 lg:px-20 py-16 lg:py-24">
               <div className="max-w-6xl mx-auto">
                 <div className="mb-20 text-left max-w-3xl">
-                  <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-full text-[11px] font-black uppercase tracking-widest mb-6">
-                    <span className="iconify text-lg" data-icon="solar:verified-check-bold-duotone"></span>
-                    {isLoggedIn ? 'Workspace Active' : 'Start Designing'}
+                  <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-full text-[11px] font-black uppercase tracking-widest mb-6">
+                    <span className="iconify text-lg" data-icon="solar:bank-bold"></span>
+                    {isLoggedIn ? 'Loan Workspace Active' : 'Bank-Ready Documents'}
                   </div>
                   <h1 className="text-5xl md:text-7xl font-[900] text-slate-900 mb-6 tracking-[-0.04em] leading-[0.95]">
-                    {isLoggedIn ? 'Select a document' : 'Create your'} <br/>
-                    <span className="text-blue-600">{isLoggedIn ? 'template.' : 'financial doc.'}</span>
+                    {isLoggedIn ? 'Build your' : 'Build your'} <br/>
+                    <span className="text-[#0B2820]">{isLoggedIn ? 'loan package.' : 'loan package.'}</span>
                   </h1>
                   
                   <div className="relative group max-w-2xl mt-12">

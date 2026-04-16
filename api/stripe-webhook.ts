@@ -76,7 +76,7 @@ export default async function handler(req: any, res: any) {
           }
         }
 
-        console.log(`Payment completed for user ${userId}, type: ${type}`);
+        // Payment processed
         break;
       }
 
@@ -97,20 +97,20 @@ export default async function handler(req: any, res: any) {
             .update({ is_pro: false })
             .eq('id', profile.id);
 
-          console.log(`Subscription cancelled for user ${profile.id}`);
+          // Subscription downgraded
         }
         break;
       }
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
-        console.log(`Payment failed for invoice ${invoice.id}`);
+        // Payment failed — could trigger email notification
         // Could send email notification here
         break;
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        // Unhandled event type — no action needed
     }
 
     return res.status(200).json({ received: true });

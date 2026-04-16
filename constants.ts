@@ -48,6 +48,15 @@ export const DOC_OPTIONS: DocOption[] = [
     timeEstimate: '~12 min',
     icon: 'solar:scale-bold-duotone',
     logo: 'solar:scale-bold'
+  },
+  {
+    type: DocumentType.CASH_FLOW_PROJECTION,
+    title: 'Cash Flow Projection',
+    description: '12-month forward-looking cash flow forecast.',
+    outcomeDescription: 'Show lenders you can service the loan. SBA-required for most 7(a) and 504 applications.',
+    timeEstimate: '~10 min',
+    icon: 'solar:chart-2-bold-duotone',
+    logo: 'solar:graph-new-up-bold'
   }
 ];
 

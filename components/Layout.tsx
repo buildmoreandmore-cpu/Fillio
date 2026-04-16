@@ -53,8 +53,7 @@ const Layout: React.FC<LayoutProps> = ({
     if (!isAuthenticated && onSignIn) {
       onSignIn();
     } else {
-      // TODO: Navigate to feature when implemented
-      console.log(`Navigate to ${feature}`);
+      // Feature navigation — placeholder for future routing
     }
   };
 
@@ -66,20 +65,21 @@ const Layout: React.FC<LayoutProps> = ({
           {/* Logo */}
           <button
             onClick={onHomeClick}
-            className="w-10 h-10 bg-[#1e3a5f] rounded-xl flex items-center justify-center text-white hover:bg-[#162d4a] transition-all shadow-lg shadow-[#1e3a5f]/20"
+            title="BankReadyDocs"
+            className="w-10 h-10 bg-[#0B2820] rounded-xl flex items-center justify-center text-white hover:bg-[#071E17] transition-all shadow-lg shadow-[#0B2820]/20"
           >
-            <span className="iconify text-lg" data-icon="solar:document-text-bold"></span>
+            <span className="iconify text-lg" data-icon="solar:bank-bold"></span>
           </button>
 
           {/* Nav Icons with Active States */}
           <nav className="flex flex-col gap-2 mt-4">
-            <button className="w-10 h-10 rounded-xl flex items-center justify-center bg-white text-[#1e3a5f] shadow-sm transition-all relative">
+            <button className="w-10 h-10 rounded-xl flex items-center justify-center bg-white text-[#0B2820] shadow-sm transition-all relative">
               <span className="iconify text-xl" data-icon="solar:home-2-bold"></span>
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-[#1e3a5f] rounded-r-full"></div>
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-[#0B2820] rounded-r-full"></div>
             </button>
             <button
               onClick={() => handleNavClick('history')}
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#1e3a5f] hover:bg-white/60 transition-all group relative"
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#0B2820] hover:bg-white/60 transition-all group relative"
             >
               <span className="iconify text-xl" data-icon="solar:clock-circle-bold"></span>
               <div className="absolute left-12 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
@@ -88,7 +88,7 @@ const Layout: React.FC<LayoutProps> = ({
             </button>
             <button
               onClick={() => handleNavClick('documents')}
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#1e3a5f] hover:bg-white/60 transition-all group relative"
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#0B2820] hover:bg-white/60 transition-all group relative"
             >
               <span className="iconify text-xl" data-icon="solar:folder-bold"></span>
               <div className="absolute left-12 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
@@ -97,7 +97,7 @@ const Layout: React.FC<LayoutProps> = ({
             </button>
             <button
               onClick={() => handleNavClick('settings')}
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#1e3a5f] hover:bg-white/60 transition-all group relative"
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#0B2820] hover:bg-white/60 transition-all group relative"
             >
               <span className="iconify text-xl" data-icon="solar:settings-bold"></span>
               <div className="absolute left-12 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
@@ -120,7 +120,7 @@ const Layout: React.FC<LayoutProps> = ({
         <div className="px-4 py-4">
           <button
             onClick={onHomeClick}
-            className="w-full bg-[#1e3a5f] hover:bg-[#162d4a] text-white px-4 py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all text-sm font-semibold shadow-lg shadow-[#1e3a5f]/20 hover:shadow-xl hover:shadow-[#1e3a5f]/30 active:scale-[0.98]"
+            className="w-full bg-[#0B2820] hover:bg-[#071E17] text-white px-4 py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all text-sm font-semibold shadow-lg shadow-[#0B2820]/20 hover:shadow-xl hover:shadow-[#0B2820]/30 active:scale-[0.98]"
           >
             <span className="iconify text-lg" data-icon="solar:add-circle-bold"></span>
             New Document
@@ -146,7 +146,7 @@ const Layout: React.FC<LayoutProps> = ({
                   <h5 className="text-[13px] font-semibold text-slate-800 mb-1 leading-tight">{doc.title}</h5>
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] text-slate-400">{doc.date}</span>
-                    <span className="text-[10px] font-medium text-[#3b82f6] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                    <span className="text-[10px] font-medium text-[#1D9E75] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                       Continue
                       <span className="iconify" data-icon="solar:arrow-right-linear"></span>
                     </span>
@@ -199,15 +199,15 @@ const Layout: React.FC<LayoutProps> = ({
 
         {/* Tip Card */}
         <div className="px-4 pb-4">
-          <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+          <div className="p-4 bg-gradient-to-br from-emerald-50 to-emerald-50 rounded-xl border border-emerald-100">
             <div className="flex items-start gap-2 mb-2">
-              <span className="iconify text-[#3b82f6] text-lg" data-icon="solar:lightbulb-bolt-bold"></span>
-              <span className="text-[10px] font-bold text-[#3b82f6] uppercase tracking-wider">Tip</span>
+              <span className="iconify text-[#1D9E75] text-lg" data-icon="solar:lightbulb-bolt-bold"></span>
+              <span className="text-[10px] font-bold text-[#1D9E75] uppercase tracking-wider">Tip</span>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed mb-3">
               Use chat mode to describe your finances naturally — AI will categorize everything for you.
             </p>
-            <button className="text-[10px] font-semibold text-[#3b82f6] hover:text-[#2563eb] transition-colors flex items-center gap-1">
+            <button className="text-[10px] font-semibold text-[#1D9E75] hover:text-[#168A63] transition-colors flex items-center gap-1">
               Try Chat Mode
               <span className="iconify" data-icon="solar:arrow-right-linear"></span>
             </button>
@@ -261,7 +261,7 @@ const Layout: React.FC<LayoutProps> = ({
               <p className="text-xs text-slate-400 mb-4">Sign in to save documents and access them anywhere</p>
               <button
                 onClick={onSignIn}
-                className="w-full bg-[#1e3a5f] hover:bg-[#162d4a] text-white py-3 rounded-xl text-sm font-semibold transition-all"
+                className="w-full bg-[#0B2820] hover:bg-[#071E17] text-white py-3 rounded-xl text-sm font-semibold transition-all"
               >
                 Sign In
               </button>
