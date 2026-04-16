@@ -7,23 +7,30 @@
 
 // ─────────── Rent Addback ───────────
 
-export type PropertySituation = 'rents' | 'owns' | 'remote';
+export type PropertySituation = 'rents' | 'owns_same_entity' | 'owns_separate_entity' | 'remote';
 
 export interface RentAddbackInput {
   propertySituation: PropertySituation;
-  rentAppearsOnFinancials: boolean; // only relevant if owns
-  annualRentExpense: number;        // only relevant if owns + appears on financials
+  rentAppearsOnFinancials: boolean; // only relevant if owns_same_entity
+  annualRentExpense: number;        // only relevant if owns_same_entity + appears on financials
 }
 
 /**
- * Rent is only added back when the business OWNS the property
- * AND rent appears as an expense on their financials.
+ * Rent addback rules — three "no addback" situations:
  *
- * If the business rents → addback is always 0.
- * If the business owns but never booked rent → addback is 0 (nothing to add back).
+ * 1. Renting from a landlord → cash is leaving the business. No addback ever.
+ * 2. Owner-occupied but rent NOT on financials → nothing was deducted. Nothing to add back.
+ * 3. Owner holds property in a SEPARATE entity (e.g. holding LLC) and operating
+ *    business pays rent TO that entity → rent is real cash leaving the operating
+ *    business, even though the owner controls both sides. No addback.
+ *
+ * The ONLY addback scenario:
+ * - Owner owns building personally or through the SAME borrowing entity
+ * - Rent expense appears on the return
+ * - Building is NOT rented through a separate structure
  */
 export function calculateRentAddback(input: RentAddbackInput): number {
-  if (input.propertySituation !== 'owns') return 0;
+  if (input.propertySituation !== 'owns_same_entity') return 0;
   if (!input.rentAppearsOnFinancials) return 0;
   return input.annualRentExpense;
 }

@@ -402,8 +402,9 @@ const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier 
 
           <div className="space-y-2 mb-5">
             {([
-              { value: 'rents' as PropertySituation, label: 'Yes — we lease/rent our space' },
-              { value: 'owns' as PropertySituation, label: 'No — we own the property we operate from' },
+              { value: 'rents' as PropertySituation, label: 'We rent/lease from a landlord' },
+              { value: 'owns_same_entity' as PropertySituation, label: 'We own the building (same entity or personally)' },
+              { value: 'owns_separate_entity' as PropertySituation, label: 'We own the building through a separate holding entity (e.g. LLC)' },
               { value: 'remote' as PropertySituation, label: 'We operate remotely / no physical location' },
             ]).map((opt) => (
               <label
@@ -442,8 +443,16 @@ const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier 
           {/* Guidance text */}
           {propertySituation === 'rents' && (
             <InfoCallout>
-              Your rent is a real ongoing expense and stays in your cash flow calculation.
-              This is normal and expected.
+              Your rent is real cash leaving the business — it stays in your expense calculation.
+              No addback applies here.
+            </InfoCallout>
+          )}
+
+          {propertySituation === 'owns_separate_entity' && (
+            <InfoCallout>
+              Even though you control both entities, the rent your operating business pays to your
+              holding entity is real cash leaving the borrowing entity. Banks treat this as a genuine
+              expense — no addback applies. This is the rule most people miss.
             </InfoCallout>
           )}
 
@@ -454,7 +463,7 @@ const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier 
           )}
 
           {/* Owner follow-up: does rent appear on financials? */}
-          {propertySituation === 'owns' && (
+          {propertySituation === 'owns_same_entity' && (
             <div className="mt-5">
               <p className="text-sm font-semibold text-slate-700 mb-3">
                 Does rent or an occupancy expense appear as a line item on your tax return?

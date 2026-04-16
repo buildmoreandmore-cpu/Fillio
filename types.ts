@@ -45,7 +45,7 @@ export interface CapacityData {
   depreciation: number;        // Line 14
   amortization: number;        // User-provided
   // Property situation
-  propertySituation: 'rents' | 'owns' | 'remote';
+  propertySituation: 'rents' | 'owns_same_entity' | 'owns_separate_entity' | 'remote';
   rentAppearsOnFinancials: boolean;
   annualRentExpense: number;
   rentAddbackApplied: number;
