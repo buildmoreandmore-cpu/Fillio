@@ -214,6 +214,8 @@ const App: React.FC = () => {
           onSignIn={() => setAuthMode('signin')}
           onDocClick={selectDocument}
           onScorecard={() => setView('scorecard')}
+          user={isLoggedIn ? { name: profile?.full_name || 'User', email: user?.email || '' } : null}
+          onLogout={handleLogout}
         />
         {authMode && (
           <AuthModal

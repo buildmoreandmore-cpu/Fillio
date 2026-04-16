@@ -9,6 +9,8 @@ interface LandingPageProps {
   onDocClick: (type: DocumentType) => void;
   onScorecard?: () => void;
   onAdmin?: () => void;
+  user?: { name: string; email: string } | null;
+  onLogout?: () => void;
 }
 
 // Editorial fintech palette.
@@ -449,7 +451,7 @@ const HeroScoreCard: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => 
   );
 };
 
-const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDocClick, onScorecard, onAdmin }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDocClick, onScorecard, onAdmin, user, onLogout }) => {
   const [expandedTiers, setExpandedTiers] = useState<Record<TierKey, boolean>>({
     bank_ready: false,
     loan_ready: false,
@@ -525,21 +527,37 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
             >
               Score Yourself <span className="ml-0.5">&rarr;</span>
             </button>
-            <button
-              onClick={onSignIn}
-              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
-            >
-              Log in
-            </button>
-            <button
-              onClick={onGetStarted}
-              className="px-3 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-white rounded-lg transition-all shadow-md hover:shadow-lg"
-              style={{ backgroundColor: NAVY }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = NAVY_HOVER)}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = NAVY)}
-            >
-              Get started
-            </button>
+            {user ? (
+              <>
+                <span className="hidden sm:block text-xs sm:text-sm font-semibold text-slate-600 truncate max-w-[120px]">
+                  {user.name.split(' ')[0]}
+                </span>
+                <button
+                  onClick={onLogout}
+                  className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  Log out
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={onSignIn}
+                  className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
+                >
+                  Log in
+                </button>
+                <button
+                  onClick={onGetStarted}
+                  className="px-3 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-white rounded-lg transition-all shadow-md hover:shadow-lg"
+                  style={{ backgroundColor: NAVY }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = NAVY_HOVER)}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = NAVY)}
+                >
+                  Get started
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
