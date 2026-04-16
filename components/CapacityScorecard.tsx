@@ -33,7 +33,12 @@ import {
 import {
   calculateEBIDA,
   calculateAdjustedCashFlow,
+  calculateTaxAdjustment,
+  isPassthroughEntity,
   TAX_FIELD_MAP,
+  type ScorecardEntityType,
+  SCORECARD_ENTITY_LABELS,
+  ENTITY_TAX_FORM,
 } from '../lib/ebida';
 
 const NAVY = '#0B2820';
@@ -157,8 +162,10 @@ const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier 
   const isPaid = userTier !== 'free';
   const currentYear = new Date().getFullYear();
 
-  // ── Section A: Tax Year ──
+  // ── Section A: Tax Year + Entity Type ──
   const [taxYear, setTaxYear] = useState(currentYear - 1);
+  const [entityType, setEntityType] = useState<ScorecardEntityType>('scorp');
+  const [ownerTakesSalary, setOwnerTakesSalary] = useState<boolean | null>(null);
 
   // ── Section B: EBIDA Inputs (tax return mapped) ──
   const [netIncome, setNetIncome] = useState(0);
@@ -232,7 +239,12 @@ const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier 
     [netIncome, interestExpense, depreciation, amortization]
   );
 
-  const adjustedCashFlow = calculateAdjustedCashFlow(ebida, rentAddback);
+  const taxAdjustment = useMemo(
+    () => calculateTaxAdjustment(netIncome, entityType),
+    [netIncome, entityType]
+  );
+
+  const adjustedCashFlow = calculateAdjustedCashFlow(ebida, rentAddback, taxAdjustment);
 
   const totalDebtService = useMemo(
     () => calculateTotalAnnualDebtService(debts),
@@ -290,7 +302,7 @@ const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier 
           </p>
         </div>
 
-        {/* ── Section A: Tax Year ── */}
+        {/* ── Section A: Tax Year + Entity Type ── */}
         <section className="bg-white rounded-xl border border-slate-200 p-6 mb-6">
           <h2 className="text-base font-bold mb-1" style={{ color: NAVY }}>
             Which tax year are you working from?
@@ -298,7 +310,7 @@ const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier 
           <p className="text-xs text-slate-500 mb-4">
             Use the most recent completed tax year. We calculate from a single year — no averaging.
           </p>
-          <div className="flex gap-3">
+          <div className="flex gap-3 mb-6">
             {[currentYear - 1, currentYear - 2].map((yr) => (
               <button
                 key={yr}
@@ -314,6 +326,123 @@ const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier 
               </button>
             ))}
           </div>
+
+          {/* Entity Type */}
+          <h2 className="text-base font-bold mb-1" style={{ color: NAVY }}>
+            Business entity type
+          </h2>
+          <p className="text-xs text-slate-500 mb-4">
+            This determines which tax form we reference and whether a pass-through tax adjustment applies.
+          </p>
+          <div className="space-y-2 mb-4">
+            {(Object.keys(SCORECARD_ENTITY_LABELS) as ScorecardEntityType[]).map((et) => (
+              <label
+                key={et}
+                className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all"
+                style={{
+                  borderColor: entityType === et ? NAVY : '#E2E8F0',
+                  backgroundColor: entityType === et ? 'rgba(11,37,69,0.03)' : '#FFFFFF',
+                }}
+              >
+                <input
+                  type="radio"
+                  name="entityType"
+                  value={et}
+                  checked={entityType === et}
+                  onChange={() => {
+                    setEntityType(et);
+                    setOwnerTakesSalary(null);
+                  }}
+                  className="sr-only"
+                />
+                <div
+                  className="w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0"
+                  style={{ borderColor: entityType === et ? NAVY : '#CBD5E1' }}
+                >
+                  {entityType === et && (
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: NAVY }} />
+                  )}
+                </div>
+                <span className="text-sm font-medium text-slate-700">{SCORECARD_ENTITY_LABELS[et]}</span>
+              </label>
+            ))}
+          </div>
+
+          {/* Pass-through tax adjustment notice */}
+          {isPassthroughEntity(entityType) && (
+            <InfoCallout>
+              As a {SCORECARD_ENTITY_LABELS[entityType]}, business income passes through to your
+              personal tax return. Banks apply a 30% tax adjustment to account for the taxes you'll
+              owe — regardless of whether you took distributions. We'll subtract this automatically.
+            </InfoCallout>
+          )}
+
+          {entityType === 'sole_prop' && (
+            <InfoCallout>
+              Sole proprietor income flows directly to your personal return via Schedule C. The tax
+              adjustment is captured on the personal side, not in the business EBIDA calculation.
+            </InfoCallout>
+          )}
+
+          {(entityType === 'ccorp' || entityType === 'llc_ccorp') && (
+            <InfoCallout>
+              C-Corporations pay taxes at the entity level. No pass-through tax adjustment is applied
+              to your business cash flow.
+            </InfoCallout>
+          )}
+
+          {/* S-Corp salary flag */}
+          {(entityType === 'scorp' || entityType === 'llc_scorp') && (
+            <div className="mt-5">
+              <p className="text-sm font-semibold text-slate-700 mb-3">
+                Does the owner take a W-2 salary from this business?
+              </p>
+              <div className="space-y-2">
+                {([
+                  { value: true, label: 'Yes — owner receives a W-2 salary' },
+                  { value: false, label: 'No — owner takes no W-2 salary' },
+                ]).map((opt) => (
+                  <label
+                    key={String(opt.value)}
+                    className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all"
+                    style={{
+                      borderColor: ownerTakesSalary === opt.value ? NAVY : '#E2E8F0',
+                      backgroundColor: ownerTakesSalary === opt.value ? 'rgba(11,37,69,0.03)' : '#FFFFFF',
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="ownerSalary"
+                      checked={ownerTakesSalary === opt.value}
+                      onChange={() => setOwnerTakesSalary(opt.value)}
+                      className="sr-only"
+                    />
+                    <div
+                      className="w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0"
+                      style={{ borderColor: ownerTakesSalary === opt.value ? NAVY : '#CBD5E1' }}
+                    >
+                      {ownerTakesSalary === opt.value && (
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: NAVY }} />
+                      )}
+                    </div>
+                    <span className="text-sm font-medium text-slate-700">{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+              {ownerTakesSalary === false && (
+                <div className="mt-3">
+                  <InfoCallout variant="warning">
+                    <strong>IRS reasonable compensation flag</strong>
+                    <br />
+                    The IRS requires S-Corp owners who perform services for the business to take
+                    reasonable W-2 compensation. Showing income with no owner salary may trigger
+                    IRS scrutiny and will raise questions with the bank. This doesn't block your
+                    calculation, but expect the lender to ask about it.
+                  </InfoCallout>
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         {/* ── Section B: EBIDA Inputs (Tax Return Mapped) ── */}
@@ -322,8 +451,8 @@ const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier 
             Your Business Tax Return ({taxYear})
           </h2>
           <p className="text-xs text-slate-500 mb-1">
-            Pull these figures from your {taxYear} Form 1120-S (S-Corp) tax return.
-            Use Column d (end of current year) for all figures.
+            Pull these figures from your {taxYear} {ENTITY_TAX_FORM[entityType]} ({SCORECARD_ENTITY_LABELS[entityType]}) tax return.
+            {entityType !== 'sole_prop' ? ' Use Column d (end of current year) for all figures.' : ''}
           </p>
           <p className="text-[11px] text-slate-400 mb-5">
             Each field shows the exact line number where you'll find it.
@@ -776,6 +905,19 @@ const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier 
                     </span>
                   </div>
                 )}
+
+                {/* Tax adjustment line — pass-through entities only */}
+                {taxAdjustment > 0 && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span style={{ color: '#DC4444' }}>
+                      - Tax Adjustment
+                      <span className="ml-1.5 text-[10px] font-bold">(30% pass-through)</span>
+                    </span>
+                    <span className="font-bold tabular-nums" style={{ color: '#DC4444' }}>
+                      -{fmtDollar(taxAdjustment)}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Divider line */}
@@ -783,7 +925,7 @@ const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier 
 
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold" style={{ color: NAVY }}>
-                  {rentAddback > 0 ? 'Adjusted Business Cash Flow' : 'Business Cash Flow (EBIDA)'}
+                  {(rentAddback > 0 || taxAdjustment > 0) ? 'Adjusted Business Cash Flow' : 'Business Cash Flow (EBIDA)'}
                 </span>
                 <span className="text-lg font-bold" style={{ color: NAVY }}>
                   {fmtDollar(adjustedCashFlow)}

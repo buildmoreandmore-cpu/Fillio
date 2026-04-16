@@ -39,7 +39,8 @@ export interface StepDefinition {
 
 export interface CapacityData {
   taxYear: number;
-  // EBIDA inputs (tax return mapped — Form 1120-S)
+  entityType: 'scorp' | 'partnership' | 'ccorp' | 'llc_scorp' | 'llc_ccorp' | 'sole_prop';
+  // EBIDA inputs (tax return mapped)
   netIncome: number;           // Schedule M-1, Line 1
   interestExpense: number;     // Line 13
   depreciation: number;        // Line 14
@@ -49,6 +50,9 @@ export interface CapacityData {
   rentAppearsOnFinancials: boolean;
   annualRentExpense: number;
   rentAddbackApplied: number;
+  // Tax adjustment
+  taxAdjustment: number;       // 30% of netIncome for pass-through entities
+  ownerTakesSalary: boolean | null; // S-Corp flag
   // Derived values
   ebida: number;
   adjustedCashFlow: number;
