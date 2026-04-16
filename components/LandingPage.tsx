@@ -9,8 +9,9 @@ interface LandingPageProps {
   onDocClick: (type: DocumentType) => void;
   onScorecard?: () => void;
   onAdmin?: () => void;
-  user?: { name: string; email: string } | null;
+  user?: { name: string; email: string; isAdmin?: boolean } | null;
   onLogout?: () => void;
+  onAdminDashboard?: () => void;
 }
 
 // Editorial fintech palette.
@@ -102,39 +103,39 @@ const TIERS: Tier[] = [
 
 const PROOF_POINTS = [
   { label: 'Built on the framework', value: 'banks actually score on' },
-  { label: 'Modeled after', value: 'institutional underwriting' },
+  { label: 'Save hours of prep', value: 'bank-ready in 15 minutes' },
   { label: 'Used by founders in', value: 'all 50 states' },
-  { label: 'Document standards from', value: 'SBA, conventional & SBLC' }
+  { label: 'Learn to position', value: 'your business like a banker' }
 ];
 
 const HOW_IT_WORKS: { n: string; icon: IconName; title: string; body: string; accent: string }[] = [
   {
     n: '01',
     icon: 'doc-add',
-    title: 'Tell us about your business',
-    body: 'A guided questionnaire built around how banks actually evaluate applications — not how a spreadsheet wants your data.',
-    accent: 'Takes about 15 minutes'
+    title: 'Answer a few guided questions',
+    body: 'No blank spreadsheets. Our guided flow asks only what banks care about — you learn what matters as you go. Most finish in under 15 minutes.',
+    accent: 'Save hours of prep'
   },
   {
     n: '02',
     icon: 'chart',
-    title: 'See where you actually stand',
-    body: 'We score you on the same five factors banks use — credit profile, cash flow, financial position, assets, and business environment. No surprises.',
-    accent: 'Your honest readiness picture'
+    title: 'Learn how a bank sees you',
+    body: 'We score you on the same five factors credit analysts use. You walk away understanding your strengths, your gaps, and why each one matters.',
+    accent: 'Education built in'
   },
   {
     n: '03',
     icon: 'verified',
-    title: 'Know exactly what to fix',
-    body: "If you're not ready yet, we tell you why — and what to address before you apply. If you are ready, we show you the gaps banks will ask about so you can answer them first.",
-    accent: 'No more guessing'
+    title: 'Get a clear action plan',
+    body: "Not ready yet? We show you exactly what to work on and why — so you know how to position your business before you apply. Already strong? We confirm it.",
+    accent: 'Position yourself to win'
   },
   {
     n: '04',
     icon: 'lock',
-    title: 'Apply with confidence',
-    body: 'Walk into the bank (or submit online) knowing your numbers, understanding your story, and carrying documents formatted the way underwriters expect to receive them.',
-    accent: 'Prepared — not hoping'
+    title: 'Apply with bank-ready documents',
+    body: 'Walk in prepared with documents formatted the way underwriters expect. You understand your numbers, you know the story, and there are no surprises.',
+    accent: 'Confidence, not hope'
   }
 ];
 
@@ -451,7 +452,7 @@ const HeroScoreCard: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => 
   );
 };
 
-const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDocClick, onScorecard, onAdmin, user, onLogout }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDocClick, onScorecard, onAdmin, user, onLogout, onAdminDashboard }) => {
   const [expandedTiers, setExpandedTiers] = useState<Record<TierKey, boolean>>({
     bank_ready: false,
     loan_ready: false,
@@ -529,6 +530,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
             </button>
             {user ? (
               <>
+                {user.isAdmin && onAdminDashboard && (
+                  <button
+                    onClick={onAdminDashboard}
+                    className="hidden sm:block px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all hover:shadow-md"
+                    style={{ backgroundColor: NAVY, color: '#5DDBA8' }}
+                  >
+                    Admin
+                  </button>
+                )}
                 <span className="hidden sm:block text-xs sm:text-sm font-semibold text-slate-600 truncate max-w-[120px]">
                   {user.name.split(' ')[0]}
                 </span>
@@ -593,15 +603,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
               </div>
 
               <h1 className="font-serif-display text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-normal text-white leading-[1.08] tracking-tight mb-4 sm:mb-6">
-                Before you apply —<br />
-                find out where you{' '}
-                <span style={{ color: '#5DDBA8' }}>actually stand</span>.
+                Learn what banks look for.<br />
+                Build your file{' '}
+                <span style={{ color: '#5DDBA8' }}>in minutes</span>.
               </h1>
 
               <p className="text-sm sm:text-lg md:text-xl text-slate-300 leading-relaxed mb-6 sm:mb-10 max-w-2xl">
-                Banks score every application on five factors. Most business owners don't know
-                what those factors are until after they've been declined. BankReadyDocs shows you
-                your picture before you apply — so you go in clear, not hopeful.
+                Banks score every application on five factors — but they never share the framework.
+                BankReadyDocs teaches you what those factors are, shows you exactly where your
+                business stands on each one, and generates bank-ready documents while you learn.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 mb-10">
@@ -699,19 +709,21 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
                   BankReadyDocs exists to close that gap.{' '}
                   <strong style={{ color: NAVY }}>Not to guarantee you get approved — that's the bank's decision.</strong>{' '}
                   But to make sure that when you apply, you understand your own financial picture
-                  the way a credit analyst sees it. No surprises. No guessing. Just clarity.
+                  the way a credit analyst sees it — and you can build the documents to match in
+                  minutes, not weeks. No surprises. No guessing. Just clarity.
                 </p>
               </div>
 
-              {/* Blockquote */}
+              {/* Testimonial */}
               <div
                 className="mt-8 p-6 rounded-xl bg-slate-50"
                 style={{ borderLeft: `4px solid ${GOLD}` }}
               >
                 <p className="text-base text-slate-700 leading-relaxed italic">
-                  "The information that banks use to approve loans has always existed. We just
-                  made it available to the people applying for them."
+                  "Definitely a timesaver, and also great education on how to place your business
+                  in the best position."
                 </p>
+                <p className="text-sm text-slate-400 mt-2 font-semibold">— BankReadyDocs client</p>
               </div>
             </div>
           </div>
@@ -852,15 +864,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
               How it works
             </div>
             <h2 className="font-serif-display text-4xl md:text-5xl font-normal tracking-tight mb-6" style={{ color: NAVY }}>
-              Before you apply,<br />find out if <em style={{ color: EMERALD, fontStyle: 'italic' }}>you're ready</em>.
+              Skip the guesswork.<br /><em style={{ color: EMERALD, fontStyle: 'italic' }}>Learn what banks look for.</em>
             </h2>
             <p className="text-lg text-slate-600 leading-relaxed mb-3">
-              Most loan applications fail before they're submitted — not because the
-              business isn't good, but because the owner didn't know what the bank was
-              looking for. BankReadyDocs changes that.
+              Hours of research, scattered templates, confusing requirements — replaced by a
+              guided process that teaches you what matters as you build your file. Most
+              founders finish in one sitting.
             </p>
             <p className="text-sm text-slate-400 italic">
-              We don't guarantee approval. We give you the self-awareness to go in prepared.
+              Not just a timesaver — an education on how to position your business.
             </p>
           </div>
 
@@ -891,14 +903,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
           <div className="mt-16 max-w-4xl mx-auto">
             <div className="border border-slate-200 rounded-2xl p-8 bg-white">
               <div className="text-[10px] font-bold uppercase tracking-[0.2em] mb-3" style={{ color: EMERALD }}>
-                The Honest Truth
+                What Our Clients Say
               </div>
-              <p className="text-base text-slate-700 leading-relaxed">
-                <strong style={{ color: NAVY }}>BankReadyDocs doesn't approve loans — banks do.</strong>{' '}
-                What we do is make sure you understand your own financial picture the way a credit
-                analyst sees it, <em>before</em> you sit across the desk from one. That's worth more
-                than any guarantee.
+              <p className="text-base text-slate-700 leading-relaxed italic">
+                "Definitely a timesaver, and also great education on how to place your business
+                in the best position."
               </p>
+              <p className="text-sm text-slate-400 mt-2 font-semibold">— BankReadyDocs client</p>
             </div>
           </div>
         </div>
@@ -909,14 +920,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <div className="text-[11px] font-bold uppercase tracking-[0.2em] mb-4" style={{ color: EMERALD }}>
-              Choose your level of help
+              Choose your level
             </div>
             <h2 className="font-serif-display text-4xl md:text-5xl font-normal tracking-tight mb-6" style={{ color: NAVY }}>
-              Three ways to get bank-ready.
+              Save time. Learn the process.<br /><em style={{ color: EMERALD, fontStyle: 'italic' }}>Apply prepared.</em>
             </h2>
             <p className="text-lg text-slate-600 leading-relaxed">
-              Pick the level of support that matches your situation — from DIY documents
-              to a full priority engagement for founders who've been declined before.
+              Every tier gives you the same education on how banks evaluate your business —
+              pick the level of hands-on support that matches where you are.
             </p>
           </div>
 
@@ -1303,12 +1314,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
             Know Before You Apply
           </div>
           <h2 className="font-serif-display text-2xl sm:text-4xl md:text-6xl font-normal text-white tracking-tight mb-4 sm:mb-6 leading-[1.08]">
-            You don't need a better pitch.<br />
-            <em style={{ color: '#5DDBA8', fontStyle: 'italic' }}>You need a stronger file.</em>
+            Stop guessing. Start <em style={{ color: '#5DDBA8', fontStyle: 'italic' }}>knowing.</em>
           </h2>
           <p className="text-sm sm:text-lg text-slate-300 max-w-2xl mx-auto mb-6 sm:mb-10 leading-relaxed px-2 sm:px-0">
-            The bank isn't reading your business plan. They're scoring your file against five factors.
-            BankReadyDocs shows you how every one of them looks before you apply — so there are no surprises.
+            Save hours of prep. Learn exactly how banks evaluate your business. Build your file
+            in minutes — and walk in knowing where you stand.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <button

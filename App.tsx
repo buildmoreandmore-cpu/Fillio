@@ -214,8 +214,9 @@ const App: React.FC = () => {
           onSignIn={() => setAuthMode('signin')}
           onDocClick={selectDocument}
           onScorecard={() => setView('scorecard')}
-          user={isLoggedIn ? { name: profile?.full_name || 'User', email: user?.email || '' } : null}
+          user={isLoggedIn ? { name: profile?.full_name || 'User', email: user?.email || '', isAdmin: profile?.is_admin ?? false } : null}
           onLogout={handleLogout}
+          onAdminDashboard={() => setView('admin')}
         />
         {authMode && (
           <AuthModal
