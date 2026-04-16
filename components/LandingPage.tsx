@@ -311,7 +311,7 @@ const HeroScoreCard: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => 
         className="absolute -top-3 -right-3 px-3 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase shadow-lg z-10"
         style={{ backgroundColor: '#BA7517', color: '#FFFFFF' }}
       >
-        Free Loan Readiness Score
+        Loan Readiness Score
       </div>
 
       <div className="bg-white rounded-2xl shadow-2xl p-7 border-t-4" style={{ borderTopColor: showResults ? band.color : '#1D9E75' }}>
@@ -332,7 +332,7 @@ const HeroScoreCard: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => 
 
         <div className="flex items-baseline gap-2 mb-1">
           <div
-            className="text-[68px] font-bold tracking-tighter leading-none transition-colors"
+            className="text-[42px] sm:text-[56px] md:text-[68px] font-bold tracking-tighter leading-none transition-colors"
             style={{ color: showResults ? '#0B2820' : '#CBD5E1' }}
           >
             {showResults ? animatedScore : '—'}
@@ -493,19 +493,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
 
       {/* ─────────── Header ─────────── */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-100">
-        <div className="h-20 flex items-center justify-between px-6 md:px-12 max-w-7xl mx-auto">
-          <div className="flex items-center gap-3">
+        <div className="h-16 sm:h-20 flex items-center justify-between px-4 sm:px-6 md:px-12 max-w-7xl mx-auto">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center shadow-md"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shadow-md"
               style={{ backgroundColor: NAVY }}
             >
-              <Icon name="bank" size={22} style={{ color: '#5DDBA8' }} />
+              <Icon name="bank" size={18} style={{ color: '#5DDBA8' }} />
             </div>
             <div className="leading-none">
-              <div className="text-lg font-bold tracking-tight" style={{ color: NAVY }}>
+              <div className="text-sm sm:text-lg font-bold tracking-tight" style={{ color: NAVY }}>
                 BankReady<span className="font-extrabold">Docs</span>
               </div>
-              <div className="text-[9px] font-semibold tracking-[0.15em] text-slate-400 uppercase mt-0.5">
+              <div className="hidden sm:block text-[9px] font-semibold tracking-[0.15em] text-slate-400 uppercase mt-0.5">
                 Know Before You Apply
               </div>
             </div>
@@ -517,23 +517,23 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
             <a href="#not-for" className="hover:text-slate-900 transition-colors">Who it's for</a>
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             <button
               onClick={onScorecard || onGetStarted}
-              className="px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all hover:shadow-md"
+              className="hidden sm:block px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all hover:shadow-md"
               style={{ borderColor: NAVY, color: NAVY }}
             >
-              Free Score <span className="ml-0.5">&rarr;</span>
+              Score Yourself <span className="ml-0.5">&rarr;</span>
             </button>
             <button
               onClick={onSignIn}
-              className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
             >
               Log in
             </button>
             <button
               onClick={onGetStarted}
-              className="px-5 py-2 text-sm font-semibold text-white rounded-lg transition-all shadow-md hover:shadow-lg"
+              className="px-3 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-white rounded-lg transition-all shadow-md hover:shadow-lg"
               style={{ backgroundColor: NAVY }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = NAVY_HOVER)}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = NAVY)}
@@ -563,8 +563,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
           <div className="flex-1" style={{ backgroundColor: EMERALD }}></div>
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-6 md:px-12 pt-24 pb-32">
-          <div className="grid lg:grid-cols-12 gap-12 items-center">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-12 sm:pt-24 pb-16 sm:pb-32">
+          <div className="grid lg:grid-cols-12 gap-6 lg:gap-12 items-center">
             <div className="lg:col-span-7">
               <div
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] mb-8"
@@ -574,13 +574,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
                 The Loan Readiness Program — Now Available
               </div>
 
-              <h1 className="font-serif-display text-4xl md:text-5xl lg:text-6xl font-normal text-white leading-[1.08] tracking-tight mb-6">
+              <h1 className="font-serif-display text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-normal text-white leading-[1.08] tracking-tight mb-4 sm:mb-6">
                 Before you apply —<br />
                 find out where you{' '}
                 <span style={{ color: '#5DDBA8' }}>actually stand</span>.
               </h1>
 
-              <p className="text-lg md:text-xl text-slate-300 leading-relaxed mb-10 max-w-2xl">
+              <p className="text-sm sm:text-lg md:text-xl text-slate-300 leading-relaxed mb-6 sm:mb-10 max-w-2xl">
                 Banks score every application on five factors. Most business owners don't know
                 what those factors are until after they've been declined. BankReadyDocs shows you
                 your picture before you apply — so you go in clear, not hopeful.
@@ -589,7 +589,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
               <div className="flex flex-col sm:flex-row gap-4 mb-10">
                 <button
                   onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="px-8 py-4 rounded-lg text-base font-bold text-white shadow-2xl transition-all hover:-translate-y-0.5 inline-flex items-center justify-center gap-2"
+                  className="px-5 sm:px-8 py-3 sm:py-4 rounded-lg text-sm sm:text-base font-bold text-white shadow-2xl transition-all hover:-translate-y-0.5 inline-flex items-center justify-center gap-2"
                   style={{ backgroundColor: EMERALD }}
                 >
                   See the Program
@@ -597,13 +597,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
                 </button>
                 <button
                   onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="px-8 py-4 rounded-lg text-base font-bold text-white border border-white/20 hover:bg-white/5 transition-all"
+                  className="px-5 sm:px-8 py-3 sm:py-4 rounded-lg text-sm sm:text-base font-bold text-white border border-white/20 hover:bg-white/5 transition-all"
                 >
                   How it works
                 </button>
               </div>
 
-              <div className="flex items-center gap-6 text-sm text-slate-400">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm text-slate-400">
                 <div className="flex items-center gap-2">
                   <Icon name="check-circle" size={18} style={{ color: '#5DDBA8' }} />
                   No credit pull
@@ -628,7 +628,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
 
         {/* Bottom proof strip */}
         <div className="relative border-t border-white/10 bg-black/20">
-          <div className="max-w-7xl mx-auto px-6 md:px-12 py-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-4 sm:py-6 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
             {PROOF_POINTS.map((p) => (
               <div key={p.label} className="text-center">
                 <div className="text-[10px] uppercase tracking-[0.15em] text-slate-500 font-semibold mb-1">{p.label}</div>
@@ -640,7 +640,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
       </section>
 
       {/* ─────────── Origin story ─────────── */}
-      <section className="py-20 px-6 bg-white border-b border-slate-100">
+      <section className="py-10 sm:py-20 px-4 sm:px-6 bg-white border-b border-slate-100">
         <div className="max-w-5xl mx-auto">
           <div className="grid md:grid-cols-12 gap-10 items-start">
             <div className="md:col-span-3">
@@ -701,7 +701,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
       </section>
 
       {/* ─────────── Program intro ─────────── */}
-      <section id="program" className="py-24 px-6 bg-white">
+      <section id="program" className="py-12 sm:py-24 px-4 sm:px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           {/* Heading block */}
           <div className="text-center max-w-3xl mx-auto mb-12">
@@ -827,7 +827,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
       </section>
 
       {/* ─────────── How it works ─────────── */}
-      <section id="how-it-works" className="py-24 px-6" style={{ backgroundColor: '#F8FAFC' }}>
+      <section id="how-it-works" className="py-12 sm:py-24 px-4 sm:px-6" style={{ backgroundColor: '#F8FAFC' }}>
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <div className="text-[11px] font-bold uppercase tracking-[0.2em] mb-4" style={{ color: EMERALD }}>
@@ -887,7 +887,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
       </section>
 
       {/* ─────────── Pricing / Tiers ─────────── */}
-      <section id="pricing" className="py-24 px-6 bg-white">
+      <section id="pricing" className="py-12 sm:py-24 px-4 sm:px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <div className="text-[11px] font-bold uppercase tracking-[0.2em] mb-4" style={{ color: EMERALD }}>
@@ -943,7 +943,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
 
                   <div className="mb-8 pb-8 border-b" style={{ borderColor: isPremium ? 'rgba(255,255,255,0.1)' : '#F1F5F9' }}>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-5xl font-bold tracking-tighter" style={{ color: textColor }}>{tier.price}</span>
+                      <span className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter" style={{ color: textColor }}>{tier.price}</span>
                       <span className="text-sm font-semibold" style={{ color: subTextColor }}>{tier.cadence}</span>
                     </div>
                     {tier.priceNote && (
@@ -1024,7 +1024,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
       </section>
 
       {/* ─────────── Who this isn't for ─────────── */}
-      <section id="not-for" className="py-20 px-6" style={{ backgroundColor: '#F8FAFC' }}>
+      <section id="not-for" className="py-10 sm:py-20 px-4 sm:px-6" style={{ backgroundColor: '#F8FAFC' }}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <div
@@ -1106,7 +1106,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
                 className="font-semibold underline"
                 style={{ color: NAVY }}
               >
-                Run the free scorecard
+                Run the scorecard
               </button>{' '}
               — if you don't qualify for any tier, we'll tell you.
             </p>
@@ -1115,7 +1115,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
       </section>
 
       {/* ─────────── Documents section ─────────── */}
-      <section id="documents" className="py-24 px-6" style={{ backgroundColor: '#F8FAFC' }}>
+      <section id="documents" className="py-12 sm:py-24 px-4 sm:px-6" style={{ backgroundColor: '#F8FAFC' }}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <div className="text-[11px] font-bold uppercase tracking-[0.2em] mb-4" style={{ color: EMERALD }}>
@@ -1268,7 +1268,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
       </section>
 
       {/* ─────────── Final CTA ─────────── */}
-      <section className="py-24 px-6 relative overflow-hidden" style={{ backgroundColor: NAVY_DEEP }}>
+      <section className="py-12 sm:py-24 px-4 sm:px-6 relative overflow-hidden" style={{ backgroundColor: NAVY_DEEP }}>
         <div
           className="absolute inset-0 opacity-[0.04]"
           style={{
@@ -1284,11 +1284,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
             <Icon name="shield-check" size={14} />
             Know Before You Apply
           </div>
-          <h2 className="font-serif-display text-4xl md:text-6xl font-normal text-white tracking-tight mb-6 leading-[1.08]">
+          <h2 className="font-serif-display text-2xl sm:text-4xl md:text-6xl font-normal text-white tracking-tight mb-4 sm:mb-6 leading-[1.08]">
             You don't need a better pitch.<br />
             <em style={{ color: '#5DDBA8', fontStyle: 'italic' }}>You need a stronger file.</em>
           </h2>
-          <p className="text-lg text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-sm sm:text-lg text-slate-300 max-w-2xl mx-auto mb-6 sm:mb-10 leading-relaxed px-2 sm:px-0">
             The bank isn't reading your business plan. They're scoring your file against five factors.
             BankReadyDocs shows you how every one of them looks before you apply — so there are no surprises.
           </p>
@@ -1312,7 +1312,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
 
       {/* ─────────── Footer ─────────── */}
       <footer className="bg-white border-t border-slate-100">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-8 sm:py-12">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
             <div className="flex items-center gap-3">
               <div

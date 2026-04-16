@@ -31,36 +31,32 @@ const Layout: React.FC<LayoutProps> = ({
   onHomeClick,
   onLogout,
   onSignIn,
-  user = null,
+  user,
   documents = []
 }) => {
   const isAuthenticated = !!user;
 
-  // Calculate stats from actual documents
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
   const stats = {
     total: documents.length,
     complete: documents.filter(d => d.status === 'COMPLETE').length,
     draft: documents.filter(d => d.status === 'DRAFT').length
   };
 
-  // Get user initials
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  };
-
   // Handle nav clicks - prompt sign-in for guests
   const handleNavClick = (feature: string) => {
     if (!isAuthenticated && onSignIn) {
       onSignIn();
-    } else {
-      // Feature navigation — placeholder for future routing
     }
   };
 
   return (
     <div className="flex h-screen bg-white overflow-hidden">
-      {/* Left Icon Rail - Darker Background */}
-      <aside className="w-14 flex-shrink-0 border-r border-slate-200 flex flex-col items-center py-6 bg-[#F1F5F9]">
+      {/* Left Icon Rail - Hidden on mobile */}
+      <aside className="hidden md:flex w-14 flex-shrink-0 border-r border-slate-200 flex-col items-center py-6 bg-[#F1F5F9]">
         <div className="flex flex-col items-center gap-6">
           {/* Logo */}
           <button
@@ -90,7 +86,7 @@ const Layout: React.FC<LayoutProps> = ({
               onClick={() => handleNavClick('documents')}
               className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#0B2820] hover:bg-white/60 transition-all group relative"
             >
-              <span className="iconify text-xl" data-icon="solar:folder-bold"></span>
+              <span className="iconify text-xl" data-icon="solar:document-bold"></span>
               <div className="absolute left-12 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
                 {isAuthenticated ? 'Documents' : 'Sign in for Documents'}
               </div>
@@ -108,8 +104,8 @@ const Layout: React.FC<LayoutProps> = ({
         </div>
       </aside>
 
-      {/* Workspace Sidebar - White */}
-      <aside className="w-[240px] flex-shrink-0 border-r border-slate-100 bg-white flex flex-col">
+      {/* Workspace Sidebar - Hidden on mobile */}
+      <aside className="hidden lg:flex w-[240px] flex-shrink-0 border-r border-slate-100 bg-white flex-col">
         {/* Header */}
         <div className="px-5 py-4 flex items-center justify-between border-b border-slate-100">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Workspace</span>
@@ -272,17 +268,33 @@ const Layout: React.FC<LayoutProps> = ({
 
       {/* Main Content */}
       <div className="flex-grow flex flex-col overflow-hidden bg-[#F8FAFC]">
-        {/* Header */}
-        <header className="h-14 flex items-center justify-between px-8 bg-white border-b border-slate-100">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">Dashboard</span>
+        {/* Mobile Header */}
+        <header className="h-12 sm:h-14 flex items-center justify-between px-4 md:px-8 bg-white border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <button className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all">
-              <span className="iconify text-xl" data-icon="solar:magnifer-linear"></span>
+            <button
+              onClick={onHomeClick}
+              className="md:hidden w-8 h-8 bg-[#0B2820] rounded-lg flex items-center justify-center text-white"
+            >
+              <span className="iconify text-sm" data-icon="solar:bank-bold"></span>
             </button>
-            <button className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all">
-              <span className="iconify text-xl" data-icon="solar:bell-linear"></span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">Dashboard</span>
+          </div>
+          <div className="flex items-center gap-1 sm:gap-2">
+            {isAuthenticated && (
+              <button
+                onClick={onLogout}
+                className="md:hidden w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-500 rounded-lg transition-all"
+              >
+                <span className="iconify text-lg" data-icon="solar:logout-2-linear"></span>
+              </button>
+            )}
+            <button className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all">
+              <span className="iconify text-lg sm:text-xl" data-icon="solar:magnifer-linear"></span>
             </button>
-            <button className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all">
+            <button className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all">
+              <span className="iconify text-lg sm:text-xl" data-icon="solar:bell-linear"></span>
+            </button>
+            <button className="hidden sm:flex w-9 h-9 items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all">
               <span className="iconify text-xl" data-icon="solar:question-circle-linear"></span>
             </button>
           </div>

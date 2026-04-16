@@ -79,10 +79,10 @@ const Paywall: React.FC<PaywallProps> = ({ data, onBack, onSuccess, onSignup }) 
   const firstName = data.fullName?.split(' ')[0] || 'Your';
 
   return (
-    <div className="min-h-full py-16 px-6 flex flex-col items-center max-w-6xl mx-auto fade-in">
+    <div className="min-h-full py-8 sm:py-16 px-4 sm:px-6 flex flex-col items-center max-w-6xl mx-auto fade-in">
       {/* Professional Header - No Emoji */}
       <div className="text-center mb-12 max-w-2xl">
-        <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-3">
           {firstName}'s Personal Financial Statement is <span className="text-emerald-600">ready</span>.
         </h2>
         <p className="text-slate-500 text-base">
@@ -90,7 +90,7 @@ const Paywall: React.FC<PaywallProps> = ({ data, onBack, onSuccess, onSignup }) 
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 w-full items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 w-full items-start">
         {/* Left Side: Preview + Summary */}
         <div className="space-y-6">
           {/* Document Preview - Readable structure, blurred numbers */}
