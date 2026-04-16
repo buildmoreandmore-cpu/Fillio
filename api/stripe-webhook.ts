@@ -74,6 +74,17 @@ export default async function handler(req: any, res: any) {
               })
               .eq('id', userId);
           }
+
+          // If scorecard purchase, update user tier to tier1
+          if (type === 'scorecard') {
+            await supabase
+              .from('profiles')
+              .update({
+                tier: 'bank_ready',
+                stripe_customer_id: session.customer as string
+              })
+              .eq('id', userId);
+          }
         }
 
         // Payment processed

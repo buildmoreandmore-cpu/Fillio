@@ -97,6 +97,29 @@ const App: React.FC = () => {
     }
   };
 
+  const handleScorecardUpgrade = async () => {
+    if (!isLoggedIn) {
+      setAuthMode('signup');
+      return;
+    }
+    try {
+      const response = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceType: 'scorecard',
+          userId: null,
+          successUrl: `${window.location.origin}?checkout=success&type=scorecard`,
+          cancelUrl: `${window.location.origin}?checkout=cancelled`
+        })
+      });
+      const { url } = await response.json();
+      if (url) window.location.href = url;
+    } catch {
+      // Checkout creation failed — stay on page
+    }
+  };
+
   // Admin dashboard — requires authentication
   if (view === 'admin') {
     if (!isLoggedIn) {
@@ -128,7 +151,7 @@ const App: React.FC = () => {
       <CapacityScorecard
         onBack={() => setView('landing')}
         userTier="free"
-        onUpgrade={() => setAuthMode('signup')}
+        onUpgrade={handleScorecardUpgrade}
       />
     );
   }

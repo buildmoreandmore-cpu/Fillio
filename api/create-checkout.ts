@@ -72,6 +72,31 @@ export default async function handler(req: any, res: any) {
           type: 'subscription'
         }
       };
+    } else if (priceType === 'scorecard') {
+      // Tier 1 scorecard report for $297
+      sessionConfig = {
+        mode: 'payment',
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'Cash Flow Analysis Report',
+                description: 'Full EBIDA breakdown, DSCR calculation, tax return mapping, debt methodology, and SBA eligibility — the same analysis a bank loan officer runs internally.',
+              },
+              unit_amount: 29700, // $297.00
+            },
+            quantity: 1,
+          },
+        ],
+        success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}&type=scorecard`,
+        cancel_url: cancelUrl,
+        metadata: {
+          userId: userId || 'guest',
+          type: 'scorecard'
+        }
+      };
     } else {
       return res.status(400).json({ error: 'Invalid price type' });
     }
