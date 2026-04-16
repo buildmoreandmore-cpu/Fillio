@@ -15,8 +15,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resetSent, setResetSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +27,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
 
     try {
       if (mode === 'signup') {
+        if (password !== confirmPassword) {
+          setError('Passwords do not match');
+          return;
+        }
+        if (password.length < 8) {
+          setError('Password must be at least 8 characters');
+          return;
+        }
         const { error } = await signUp(email, password, fullName);
         if (error) {
           setError(error.message);
@@ -46,42 +56,28 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin
-        }
-      });
-
-      if (error) {
-        setError(error.message);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to sign in with Google');
-    }
-  };
-
   const handleForgotPassword = async () => {
     if (!email) {
-      setError('Please enter your email address');
+      setError('Please enter your email address first');
       return;
     }
 
+    setIsLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
+        redirectTo: `${window.location.origin}?reset=true`
       });
 
       if (error) {
         setError(error.message);
       } else {
         setError(null);
-        alert('Password reset email sent! Check your inbox.');
+        setResetSent(true);
       }
     } catch (err: any) {
       setError(err.message || 'Failed to send reset email');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -102,18 +98,24 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
 
         <div className="text-center mb-10">
           <h2 className="text-3xl font-[900] text-slate-900 tracking-tight mb-2 uppercase">
-            {mode === 'signin' ? 'Welcome Back' : 'Get Started'}
+            {mode === 'signin' ? 'Welcome Back' : 'Create Your Account'}
           </h2>
           <p className="text-slate-500 font-medium text-sm">
             {mode === 'signin'
-              ? 'Access your saved documents and bank links.'
-              : 'Create professional docs in under 5 minutes.'}
+              ? 'Sign in to access your documents and reports.'
+              : 'Save your work and access your purchased reports.'}
           </p>
         </div>
 
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600">
             {error}
+          </div>
+        )}
+
+        {resetSent && (
+          <div className="mb-6 p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-sm text-emerald-700">
+            Password reset email sent to <strong>{email}</strong>. Check your inbox.
           </div>
         )}
 
@@ -154,18 +156,35 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={8}
               disabled={isLoading}
               className="w-full bg-slate-50 border-2 border-transparent focus:border-emerald-100 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300 disabled:opacity-50"
             />
           </div>
+
+          {mode === 'signup' && (
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Confirm Password</label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={8}
+                disabled={isLoading}
+                className="w-full bg-slate-50 border-2 border-transparent focus:border-emerald-100 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300 disabled:opacity-50"
+              />
+            </div>
+          )}
 
           {mode === 'signin' && (
              <div className="text-right">
                 <button
                   type="button"
                   onClick={handleForgotPassword}
-                  className="text-[10px] font-black text-[#1D9E75] uppercase tracking-widest hover:underline"
+                  disabled={isLoading}
+                  className="text-[10px] font-black text-[#1D9E75] uppercase tracking-widest hover:underline disabled:opacity-50"
                 >
                   Forgot Password?
                 </button>
@@ -188,24 +207,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
           </button>
         </form>
 
-        <div className="mt-8 relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-100"></div>
-          </div>
-          <div className="relative flex justify-center">
-            <span className="bg-white px-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">or</span>
-          </div>
-        </div>
-
-        <button
-          onClick={handleGoogleSignIn}
-          disabled={isLoading}
-          className="w-full mt-8 bg-white border-2 border-slate-100 hover:border-slate-200 text-slate-900 py-4 rounded-2xl text-[12px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all disabled:opacity-50"
-        >
-          <span className="iconify text-xl" data-icon="simple-icons:google"></span>
-          Continue with Google
-        </button>
-
         <div className="mt-10 text-center">
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
             {mode === 'signin' ? "Don't have an account?" : "Already have an account?"}
@@ -214,6 +215,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSuccess, setMode
               onClick={() => {
                 setMode(mode === 'signin' ? 'signup' : 'signin');
                 setError(null);
+                setResetSent(false);
               }}
               className="text-[#1D9E75] hover:underline"
             >
