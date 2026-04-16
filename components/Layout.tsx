@@ -62,9 +62,12 @@ const Layout: React.FC<LayoutProps> = ({
           <button
             onClick={onHomeClick}
             title="BankReadyDocs"
-            className="w-10 h-10 bg-[#0B2820] rounded-xl flex items-center justify-center text-white hover:bg-[#071E17] transition-all shadow-lg shadow-[#0B2820]/20"
+            className="w-10 h-10 rounded-xl overflow-hidden hover:opacity-90 transition-all shadow-lg shadow-[#0B2820]/20"
           >
-            <span className="iconify text-lg" data-icon="solar:bank-bold"></span>
+            <svg viewBox="0 0 64 64" className="w-full h-full" aria-hidden="true">
+              <rect width="64" height="64" fill="#0B2820" />
+              <text x="15" y="48" fontFamily="Georgia, 'Times New Roman', serif" fontSize="42" fontWeight="bold" fill="#FFFFFF" letterSpacing="-1">B</text>
+            </svg>
           </button>
 
           {/* Nav Icons with Active States */}

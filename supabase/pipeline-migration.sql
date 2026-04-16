@@ -361,24 +361,26 @@ create trigger set_submissions_updated_at
   for each row
   execute function update_updated_at();
 
--- ── 7. Admin RLS for profiles (so admin can see all clients) ─
+-- ── 7. Admin helper function (SECURITY DEFINER to avoid RLS recursion) ─
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+stable
+as $$
+  select coalesce(
+    (select is_admin from public.profiles where id = auth.uid()),
+    false
+  );
+$$;
+
+-- ── 8. Admin RLS for profiles (uses is_admin() to avoid recursion) ─
 
 create policy "Admins can view all profiles"
   on profiles for select
-  using (
-    exists (
-      select 1 from profiles p
-      where p.id = auth.uid()
-      and p.is_admin = true
-    )
-  );
+  using (public.is_admin());
 
 create policy "Admins can update all profiles"
   on profiles for update
-  using (
-    exists (
-      select 1 from profiles p
-      where p.id = auth.uid()
-      and p.is_admin = true
-    )
-  );
+  using (public.is_admin());

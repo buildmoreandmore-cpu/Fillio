@@ -500,11 +500,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-100">
         <div className="h-16 sm:h-20 flex items-center justify-between px-4 sm:px-6 md:px-12 max-w-7xl mx-auto">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div
-              className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shadow-md"
-              style={{ backgroundColor: NAVY }}
-            >
-              <Icon name="bank" size={18} style={{ color: '#5DDBA8' }} />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl shadow-md overflow-hidden flex-shrink-0" style={{ backgroundColor: NAVY }}>
+              <svg viewBox="0 0 64 64" className="w-full h-full" aria-hidden="true">
+                <rect width="64" height="64" fill={NAVY} />
+                <text x="15" y="48" fontFamily="Georgia, 'Times New Roman', serif" fontSize="42" fontWeight="bold" fill="#FFFFFF" letterSpacing="-1">B</text>
+              </svg>
             </div>
             <div className="leading-none">
               <div className="text-sm sm:text-lg font-bold tracking-tight" style={{ color: NAVY }}>
@@ -1345,11 +1345,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-8 sm:py-12">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
             <div className="flex items-center gap-3">
-              <div
-                className="w-9 h-9 rounded-lg flex items-center justify-center shadow-md"
-                style={{ backgroundColor: NAVY }}
-              >
-                <Icon name="bank" size={20} style={{ color: '#5DDBA8' }} />
+              <div className="w-9 h-9 rounded-xl shadow-md overflow-hidden flex-shrink-0" style={{ backgroundColor: NAVY }}>
+                <svg viewBox="0 0 64 64" className="w-full h-full" aria-hidden="true">
+                  <rect width="64" height="64" fill={NAVY} />
+                  <text x="15" y="48" fontFamily="Georgia, 'Times New Roman', serif" fontSize="42" fontWeight="bold" fill="#FFFFFF" letterSpacing="-1">B</text>
+                </svg>
               </div>
               <div>
                 <div className="text-base font-bold" style={{ color: NAVY }}>

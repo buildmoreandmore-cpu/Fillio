@@ -159,7 +159,12 @@ const AdminShell: React.FC<AdminShellProps> = ({ onExit }) => {
         <div className="max-w-6xl mx-auto px-4 md:px-8 flex items-center justify-between h-14">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <Icon name="bank" size={20} style={{ color: NAVY }} />
+              <div className="w-7 h-7 rounded-lg overflow-hidden flex-shrink-0" style={{ backgroundColor: NAVY }}>
+                <svg viewBox="0 0 64 64" className="w-full h-full" aria-hidden="true">
+                  <rect width="64" height="64" fill={NAVY} />
+                  <text x="15" y="48" fontFamily="Georgia, 'Times New Roman', serif" fontSize="42" fontWeight="bold" fill="#FFFFFF" letterSpacing="-1">B</text>
+                </svg>
+              </div>
               <span className="text-sm font-bold" style={{ color: NAVY }}>BankReadyDocs</span>
               <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-500">
                 Admin

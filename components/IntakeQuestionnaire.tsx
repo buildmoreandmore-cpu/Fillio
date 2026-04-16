@@ -6,8 +6,6 @@
  */
 
 import React, { useState } from 'react';
-import { Icon } from './Icon';
-
 const NAVY = '#0B2820';
 const EMERALD = '#1D9E75';
 const GOLD = '#BA7517';
@@ -112,7 +110,12 @@ const IntakeQuestionnaire: React.FC<IntakeQuestionnaireProps> = ({
         <div className="px-8 pt-8 pb-4">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <Icon name="bank" size={20} style={{ color: NAVY }} />
+              <div className="w-7 h-7 rounded-lg overflow-hidden flex-shrink-0" style={{ backgroundColor: NAVY }}>
+                <svg viewBox="0 0 64 64" className="w-full h-full" aria-hidden="true">
+                  <rect width="64" height="64" fill={NAVY} />
+                  <text x="15" y="48" fontFamily="Georgia, 'Times New Roman', serif" fontSize="42" fontWeight="bold" fill="#FFFFFF" letterSpacing="-1">B</text>
+                </svg>
+              </div>
               <span className="text-sm font-bold" style={{ color: NAVY }}>BankReadyDocs</span>
               <span
                 className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
