@@ -147,6 +147,13 @@ const App: React.FC = () => {
     }
   }, [isLoggedIn, pendingScorecardUpgrade, triggerScorecardCheckout]);
 
+  // After login, auto-navigate admin users to the admin dashboard
+  useEffect(() => {
+    if (isLoggedIn && profile?.is_admin && view === 'landing') {
+      setView('admin');
+    }
+  }, [isLoggedIn, profile?.is_admin]);
+
   // Derive scorecard tier from profile
   const scorecardTier = profile?.tier === 'bank_ready' ? 'tier1' : 'free';
 
