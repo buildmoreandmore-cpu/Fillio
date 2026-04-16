@@ -17,7 +17,13 @@ export type FlagType =
   | 'negative_personal_dcf'
   | 'dscr_below_threshold'
   | 'high_leverage'
-  | 'declined_previously';
+  | 'declined_previously'
+  // Warren Moon (CCB HR) personal CF flags
+  | 'large_taxable_interest'
+  | 'large_dividend_income'
+  | 'ira_distribution_rmd_check'
+  | 'ira_likely_not_rmd'
+  | 'schedule_e_part_ii_double_count';
 
 export type AdminResolution = 'confirmed' | 'override' | 'request_info';
 
@@ -34,6 +40,11 @@ export const FLAG_TYPE_LABELS: Record<FlagType, string> = {
   dscr_below_threshold: 'DSCR Below 1.00x',
   high_leverage: 'High Leverage Ratio (>3.0)',
   declined_previously: 'Prior Loan Decline',
+  large_taxable_interest: 'Large Taxable Interest (Line 2b)',
+  large_dividend_income: 'Large Dividend Income (Line 3b)',
+  ira_distribution_rmd_check: 'IRA Distribution — Confirm RMD',
+  ira_likely_not_rmd: 'IRA Distribution — Guarantor Under 73',
+  schedule_e_part_ii_double_count: 'Schedule E Part II Detected (Double Count Risk)',
 };
 
 export const FLAG_TYPE_DESCRIPTIONS: Record<FlagType, string> = {
@@ -49,6 +60,11 @@ export const FLAG_TYPE_DESCRIPTIONS: Record<FlagType, string> = {
   dscr_below_threshold: 'DSCR is below 1.00x. The business cannot cover its debt obligations from cash flow alone.',
   high_leverage: 'Leverage ratio exceeds 3.0. The business is heavily leveraged relative to tangible net worth.',
   declined_previously: 'Client indicated they were previously declined for a loan. Tier 3 — requires decline diagnosis.',
+  large_taxable_interest: 'Taxable interest (Form 1040, Line 2b) exceeds $5,000. Credit officer will want to see underlying assets on PFS or proof from bank/brokerage statements. Confirm assets documented in Schedule B or D on PFS.',
+  large_dividend_income: 'Ordinary dividends (Form 1040, Line 3b) exceed $5,000. From brokerage accounts — want to see assets documented on PFS. Confirm brokerage account assets appear in Schedule B or D on the PFS.',
+  ira_distribution_rmd_check: 'IRA distribution reported on Form 1040, Line 4b. Confirm this is a Required Minimum Distribution (RMD) and not a one-time withdrawal. If one-time withdrawal, exclude from personal cash flow.',
+  ira_likely_not_rmd: 'IRA distribution reported but guarantor is under age 73. RMDs typically begin at 73. High likelihood this is a one-time withdrawal, not an RMD. Verify with client before including in personal cash flow.',
+  schedule_e_part_ii_double_count: 'CRITICAL: Schedule E Part II (pass-through K-1) income detected. This income is ALREADY captured in business EBIDA. Including it in personal cash flow = double counting. Must be excluded from personal cash flow calculation.',
 };
 
 // ─────────── Flag data shape ───────────
@@ -95,6 +111,14 @@ interface ScorecardSnapshot {
   // Other
   declinedPreviously: boolean;
   officerCompensation: number;
+
+  // Warren Moon personal CF inputs
+  taxableInterest: number;         // Form 1040, Line 2b
+  ordinaryDividends: number;       // Form 1040, Line 3b
+  iraDistribution: number;         // Form 1040, Line 4b
+  guarantorAge: number | null;     // for RMD age check (73+)
+  hasScheduleEPartII: boolean;     // K-1 pass-through detected
+  scheduleEPartIIAmount: number;   // amount if detected
 }
 
 export interface GeneratedFlag {
@@ -206,6 +230,49 @@ export function generateFlags(snapshot: ScorecardSnapshot): GeneratedFlag[] {
       flagType: 'declined_previously',
       flagDescription: FLAG_TYPE_DESCRIPTIONS.declined_previously,
       clientInput: {},
+    });
+  }
+
+  // ── Warren Moon (CCB HR) Personal CF Flags ──
+
+  if (snapshot.taxableInterest > 5000) {
+    flags.push({
+      flagType: 'large_taxable_interest',
+      flagDescription: FLAG_TYPE_DESCRIPTIONS.large_taxable_interest,
+      clientInput: { amount: snapshot.taxableInterest, lineRef: 'Form 1040, Line 2b' },
+    });
+  }
+
+  if (snapshot.ordinaryDividends > 5000) {
+    flags.push({
+      flagType: 'large_dividend_income',
+      flagDescription: FLAG_TYPE_DESCRIPTIONS.large_dividend_income,
+      clientInput: { amount: snapshot.ordinaryDividends, lineRef: 'Form 1040, Line 3b' },
+    });
+  }
+
+  if (snapshot.iraDistribution > 0) {
+    flags.push({
+      flagType: 'ira_distribution_rmd_check',
+      flagDescription: FLAG_TYPE_DESCRIPTIONS.ira_distribution_rmd_check,
+      clientInput: { amount: snapshot.iraDistribution, lineRef: 'Form 1040, Line 4b' },
+    });
+
+    // Additional flag if guarantor is under 73 (RMDs typically begin at 73)
+    if (snapshot.guarantorAge !== null && snapshot.guarantorAge < 73) {
+      flags.push({
+        flagType: 'ira_likely_not_rmd',
+        flagDescription: FLAG_TYPE_DESCRIPTIONS.ira_likely_not_rmd,
+        clientInput: { amount: snapshot.iraDistribution, guarantorAge: snapshot.guarantorAge },
+      });
+    }
+  }
+
+  if (snapshot.hasScheduleEPartII) {
+    flags.push({
+      flagType: 'schedule_e_part_ii_double_count',
+      flagDescription: FLAG_TYPE_DESCRIPTIONS.schedule_e_part_ii_double_count,
+      clientInput: { amount: snapshot.scheduleEPartIIAmount, lineRef: 'Schedule E, Part II' },
     });
   }
 

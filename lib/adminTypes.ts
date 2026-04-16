@@ -6,7 +6,7 @@ import type { FlagType, AdminResolution } from './adminFlags';
 
 // ─────────── Scorecard status ───────────
 
-export type ScorecardStatus = 'provisional' | 'confirmed' | 'needs_revision';
+export type ScorecardStatus = 'in_progress' | 'submitted' | 'under_review' | 'needs_info' | 'confirmed' | 'report_released';
 export type TierKey = 'bank_ready' | 'loan_ready' | 'approved';
 
 export const TIER_LABELS: Record<TierKey, string> = {
@@ -22,15 +22,21 @@ export const TIER_COLORS: Record<TierKey, string> = {
 };
 
 export const STATUS_LABELS: Record<ScorecardStatus, string> = {
-  provisional: 'Under Review',
+  in_progress: 'In Progress',
+  submitted: 'Submitted',
+  under_review: 'Under Review',
   confirmed: 'Confirmed',
-  needs_revision: 'Needs Info',
+  needs_info: 'Needs Info',
+  report_released: 'Report Released',
 };
 
 export const STATUS_COLORS: Record<ScorecardStatus, string> = {
-  provisional: '#BA7517',
+  in_progress: '#94A3B8',
+  submitted: '#BA7517',
+  under_review: '#BA7517',
   confirmed: '#1D9E75',
-  needs_revision: '#DC4444',
+  needs_info: '#DC4444',
+  report_released: '#1D9E75',
 };
 
 // ─────────── Client record (as seen by admin) ───────────
@@ -62,18 +68,48 @@ export interface ScorecardRecord {
   userId: string;
   status: ScorecardStatus;
 
-  // Capacity data (JSONB snapshots)
-  businessCashFlow: Record<string, unknown>;
-  businessDebtService: Record<string, unknown>;
-  personalCashFlow: Record<string, unknown>;
-  personalDebtService: Record<string, unknown>;
+  // Business identity
+  businessName: string;
+  entityType: string;
+  industry: string;
+  loanAmountRequested: number | null;
+  loanPurpose: string;
 
-  // Derived scores
-  businessDscr: number;
-  personalDiscretionaryCf: number;
+  // Business cash flow inputs
+  taxYear: number | null;
+  netProfitCy: number;
+  interestExpenseCy: number;
+  depreciationAmortizationCy: number;
+  amortizationCy: number;
+  rentExpenseCy: number;
+  propertySituation: string | null;
+  rentAppearsOnFinancials: boolean;
+  debtObligations: unknown[];
+
+  // Guarantor
+  filesJointly: boolean;
+  spouseHasVestedInterest: boolean;
+
+  // Credit
+  experianScore: number | null;
+  transunionScore: number | null;
+
+  // Calculated results
+  ebidaCy: number | null;
+  taxAdjustmentCy: number;
+  rentAddbackCy: number;
+  businessCashFlowCy: number | null;
+  businessCashFlowPy: number | null;
+  businessDebtService: number | null;
+  dscrCy: number | null;
+  dscrPy: number | null;
+  leverageRatio: number | null;
+  personalCashFlowAvailable: number | null;
+  personalDebtService: number | null;
+  personalDiscretionaryCf: number | null;
+
+  // Scores
   capacityScore: number;
-
-  // Five C's
   characterScore: number;
   capitalScore: number;
   collateralScore: number;
@@ -86,6 +122,8 @@ export interface ScorecardRecord {
   reviewedAt: string | null;
   confirmedOverrides: Record<string, unknown>;
 
+  // Timestamps
+  submittedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

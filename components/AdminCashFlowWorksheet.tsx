@@ -208,18 +208,17 @@ const AdminCashFlowWorksheet: React.FC<AdminCashFlowWorksheetProps> = ({ onBack 
   const [newLOCLimit, setNewLOCLimit] = useState(0);
   const [newTermMo, setNewTermMo] = useState(0);
 
-  // ── Section B: Personal Cash Flow inputs ──
-  const [wages, setWages] = useState(0);
-  const [interestDividends, setInterestDividends] = useState(0);
-  const [iraPension, setIraPension] = useState(0);
-  const [socialSecurity, setSocialSecurity] = useState(0);
-  const [alimony, setAlimony] = useState(0);
-  const [scheduleC, setScheduleC] = useState(0);
-  const [isBorrowingEntityC, setIsBorrowingEntityC] = useState(true);
-  const [rentalIncome, setRentalIncome] = useState(0);
-  const [farmIncome, setFarmIncome] = useState(0);
-  const [otherIncome, setOtherIncome] = useState(0);
-  const [distributions, setDistributions] = useState(0);
+  // ── Section B: Personal Cash Flow inputs (Warren Moon Rules) ──
+  const [filesJointly, setFilesJointly] = useState(false);
+  const [spouseIsGuarantor, setSpouseIsGuarantor] = useState(false);
+  const [wages, setWages] = useState(0);                   // Line 1a — guarantor's W-2s only
+  const [taxableInterest, setTaxableInterest] = useState(0);   // Line 2b — flag if >$5K
+  const [ordinaryDividends, setOrdinaryDividends] = useState(0); // Line 3b — flag if >$5K
+  const [iraRMD, setIraRMD] = useState(0);                 // Line 4b — RMD only, grossed up x1.25
+  const [pensionAnnuity, setPensionAnnuity] = useState(0); // Line 5 — ongoing only, grossed up x1.25
+  const [socialSecurity, setSocialSecurity] = useState(0); // Line 6b — guarantor's SS only, grossed up x1.25
+  const [nonBorrowingScheduleC, setNonBorrowingScheduleC] = useState(0); // Schedule C Line 31, NOT borrowing entity
+  const [alimony, setAlimony] = useState(0);               // Voluntary disclosure only — never prompt
 
   // ── Section C: Personal Debt Service inputs ──
   const [mortgageMo, setMortgageMo] = useState(0);
@@ -256,18 +255,15 @@ const AdminCashFlowWorksheet: React.FC<AdminCashFlowWorksheetProps> = ({ onBack 
   );
 
   const personalCF = useMemo(() => calculatePersonalCashFlow({
-    wagesAndSalaries: wages,
-    interestAndDividends: interestDividends,
-    recurringIRAAndPension: iraPension,
-    socialSecurity,
-    alimony,
-    businessIncomeScheduleC: scheduleC,
-    isBorrowingEntityScheduleC: isBorrowingEntityC,
-    rentalIncomeScheduleE: rentalIncome,
-    farmIncomeScheduleF: farmIncome,
-    otherRecurringIncome: otherIncome,
-    distributions,
-  }), [wages, interestDividends, iraPension, socialSecurity, alimony, scheduleC, isBorrowingEntityC, rentalIncome, farmIncome, otherIncome, distributions]);
+    wagesLine1a: wages,
+    taxableInterestLine2b: taxableInterest,
+    ordinaryDividendsLine3b: ordinaryDividends,
+    iraRMDLine4b: iraRMD,
+    pensionAnnuityLine5: pensionAnnuity,
+    socialSecurityLine6b: socialSecurity,
+    nonBorrowingScheduleC,
+    alimonyVoluntary: alimony,
+  }), [wages, taxableInterest, ordinaryDividends, iraRMD, pensionAnnuity, socialSecurity, nonBorrowingScheduleC, alimony]);
 
   const personalDS = useMemo(() => calculatePersonalDebtService({
     mortgageMonthlyPayment: mortgageMo,
@@ -283,7 +279,7 @@ const AdminCashFlowWorksheet: React.FC<AdminCashFlowWorksheetProps> = ({ onBack 
 
   const hasBizInputs = netProfit !== 0 || bizInterest > 0 || bizDA > 0;
   const hasBizDebt = bizDebtService.total > 0;
-  const hasPersonalInputs = wages > 0 || distributions > 0 || iraPension > 0 || socialSecurity > 0;
+  const hasPersonalInputs = wages > 0 || taxableInterest > 0 || ordinaryDividends > 0 || iraRMD > 0 || pensionAnnuity > 0 || socialSecurity > 0 || nonBorrowingScheduleC > 0;
   const hasPersonalDebt = personalDS.total > 0;
 
   return (
@@ -646,141 +642,148 @@ const AdminCashFlowWorksheet: React.FC<AdminCashFlowWorksheetProps> = ({ onBack 
 
           {openSections.personal && (
             <div className="px-5 pb-5 border-t border-slate-100">
-              <div className="grid sm:grid-cols-2 gap-4 mt-4">
+              {/* Warren Moon rules callout */}
+              <div className="mt-4 mb-5">
+                <InfoCallout>
+                  <span className="font-bold">Warren Moon (CCB HR) Rules Apply.</span>{' '}
+                  Only guarantor&apos;s individual income is included. Schedule E Part II
+                  (K-1 pass-through) is excluded — already in business EBIDA. Rental income
+                  (Schedule E Part I) and farm income (Schedule F) are treated as business side.
+                </InfoCallout>
+              </div>
+
+              {/* Joint filer notice */}
+              {filesJointly && !spouseIsGuarantor && (
+                <div className="mb-5">
+                  <InfoCallout variant="warning">
+                    <span className="font-bold">Joint Filer — Guarantor Isolation Required.</span>{' '}
+                    Only use the guarantor&apos;s individual income — NOT the combined household total.
+                    Review each W-2, interest, dividend, IRA, pension, and SS line to confirm
+                    which income belongs to the guarantor.
+                  </InfoCallout>
+                </div>
+              )}
+
+              <div className="grid sm:grid-cols-2 gap-4">
                 <CurrencyField
-                  label="Wages & Salaries"
+                  label="W-2 Wages & Salaries"
+                  sublabel="Form 1040, Line 1a — guarantor only"
                   value={wages}
                   onChange={setWages}
                 />
                 <CurrencyField
-                  label="Interest & Dividends"
-                  value={interestDividends}
-                  onChange={setInterestDividends}
+                  label="Taxable Interest"
+                  sublabel="Form 1040, Line 2b — flag if >$5K"
+                  value={taxableInterest}
+                  onChange={setTaxableInterest}
                 />
                 <CurrencyField
-                  label="IRA / Pension Income"
-                  sublabel="Grossed up x1.25 (tax-advantaged)"
-                  value={iraPension}
-                  onChange={setIraPension}
+                  label="Ordinary Dividends"
+                  sublabel="Form 1040, Line 3b — flag if >$5K"
+                  value={ordinaryDividends}
+                  onChange={setOrdinaryDividends}
                 />
                 <CurrencyField
-                  label="Social Security"
-                  sublabel="Grossed up x1.25 (tax-advantaged)"
+                  label="IRA Distributions (RMD Only)"
+                  sublabel="Form 1040, Line 4b — grossed up x1.25"
+                  value={iraRMD}
+                  onChange={setIraRMD}
+                />
+                <CurrencyField
+                  label="Pension / Annuity (Ongoing Only)"
+                  sublabel="Form 1040, Line 5 — grossed up x1.25"
+                  value={pensionAnnuity}
+                  onChange={setPensionAnnuity}
+                />
+                <CurrencyField
+                  label="Social Security Benefits"
+                  sublabel="Form 1040, Line 6b — grossed up x1.25"
                   value={socialSecurity}
                   onChange={setSocialSecurity}
                 />
                 <CurrencyField
-                  label="Alimony Received"
+                  label="Other Business Income (Side Hustle)"
+                  sublabel="Schedule C, Line 31 — only if NOT borrowing entity"
+                  value={nonBorrowingScheduleC}
+                  onChange={setNonBorrowingScheduleC}
+                />
+                <CurrencyField
+                  label="Alimony (Voluntary Only)"
+                  sublabel="Schedule 1, Line 2a — only if client disclosed"
                   value={alimony}
                   onChange={setAlimony}
                 />
-                <CurrencyField
-                  label="Distributions"
-                  sublabel="Income pulled from business entity"
-                  value={distributions}
-                  onChange={setDistributions}
-                />
-                <CurrencyField
-                  label="Rental Income (Schedule E)"
-                  value={rentalIncome}
-                  onChange={setRentalIncome}
-                />
-                <CurrencyField
-                  label="Farm Income (Schedule F)"
-                  value={farmIncome}
-                  onChange={setFarmIncome}
-                />
-                <CurrencyField
-                  label="Other Recurring Income"
-                  value={otherIncome}
-                  onChange={setOtherIncome}
-                />
               </div>
 
-              {/* Schedule C with toggle */}
-              <div className="mt-5 p-4 rounded-lg bg-slate-50 border border-slate-200">
-                <CurrencyField
-                  label="Business Income (Schedule C)"
-                  sublabel="Only include if this is NOT the borrowing entity"
-                  value={scheduleC}
-                  onChange={setScheduleC}
-                />
-                <label className="flex items-center gap-2.5 cursor-pointer mt-3">
-                  <div
-                    className="w-5 h-5 rounded border-2 flex items-center justify-center transition-all"
-                    style={{
-                      borderColor: isBorrowingEntityC ? NAVY : '#CBD5E1',
-                      backgroundColor: isBorrowingEntityC ? NAVY : '#FFFFFF',
-                    }}
-                  >
-                    {isBorrowingEntityC && (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    )}
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={isBorrowingEntityC}
-                    onChange={(e) => setIsBorrowingEntityC(e.target.checked)}
-                    className="sr-only"
-                  />
-                  <span className="text-xs font-semibold text-slate-600">
-                    This Schedule C IS the borrowing entity (exclude from personal)
-                  </span>
-                </label>
+              {/* Inline flag warnings */}
+              {taxableInterest > 5000 && (
+                <div className="mt-4">
+                  <InfoCallout variant="warning">
+                    <span className="font-bold">Taxable interest exceeds $5,000.</span>{' '}
+                    Credit officer will want to see underlying assets on PFS or proof from
+                    bank/brokerage statements.
+                  </InfoCallout>
+                </div>
+              )}
+              {ordinaryDividends > 5000 && (
+                <div className="mt-4">
+                  <InfoCallout variant="warning">
+                    <span className="font-bold">Ordinary dividends exceed $5,000.</span>{' '}
+                    Verify brokerage account assets appear in Schedule B or D on the PFS.
+                  </InfoCallout>
+                </div>
+              )}
 
-                {isBorrowingEntityC && scheduleC > 0 && (
-                  <div className="mt-3">
-                    <InfoCallout>
-                      We've excluded your Schedule C business income here since it was already
-                      counted in your Business Cash Flow section above.
-                    </InfoCallout>
+              {/* Hard exclude reminder */}
+              <div className="mt-5 p-4 rounded-lg bg-red-50/50 border border-red-100">
+                <div className="flex items-start gap-2">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="flex-shrink-0 mt-0.5">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                  <div>
+                    <p className="text-xs font-bold text-red-700 mb-1">Items NOT included in personal cash flow:</p>
+                    <ul className="text-[11px] text-red-600 space-y-0.5 list-disc pl-4">
+                      <li>Schedule E Part II (K-1 pass-through) — already in business EBIDA</li>
+                      <li>One-time IRA withdrawals or pension payouts</li>
+                      <li>Rental income (Schedule E Part I) — business side</li>
+                      <li>Farm income (Schedule F) — business side</li>
+                      <li>Capital gains, unemployment, gambling, cancellation of debt</li>
+                    </ul>
                   </div>
-                )}
+                </div>
               </div>
 
               {/* Personal Cash Flow Breakdown */}
               {hasPersonalInputs && (
                 <div className="mt-5 p-4 rounded-lg bg-slate-50 border border-slate-200">
                   <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">
-                    Personal Cash Flow Breakdown
+                    Personal Cash Flow Breakdown (Warren Moon Rules)
                   </div>
-                  {personalCF.wagesAndSalaries > 0 && (
-                    <BreakdownRow label="Wages & Salaries" value={personalCF.wagesAndSalaries} />
+                  {personalCF.wagesLine1a > 0 && (
+                    <BreakdownRow label="W-2 Wages" sublabel="(Line 1a)" value={personalCF.wagesLine1a} />
                   )}
-                  {personalCF.interestAndDividends > 0 && (
-                    <BreakdownRow label="Interest & Dividends" prefix="+" value={personalCF.interestAndDividends} />
+                  {personalCF.taxableInterestLine2b > 0 && (
+                    <BreakdownRow label="Taxable Interest" sublabel="(Line 2b)" prefix="+" value={personalCF.taxableInterestLine2b} />
                   )}
-                  {personalCF.iraAndPensionGrossed > 0 && (
-                    <BreakdownRow label="IRA/Pension" sublabel="(@1.25x)" prefix="+" value={personalCF.iraAndPensionGrossed} />
+                  {personalCF.ordinaryDividendsLine3b > 0 && (
+                    <BreakdownRow label="Ordinary Dividends" sublabel="(Line 3b)" prefix="+" value={personalCF.ordinaryDividendsLine3b} />
+                  )}
+                  {personalCF.iraRMDGrossed > 0 && (
+                    <BreakdownRow label="IRA RMD" sublabel="(Line 4b @1.25x)" prefix="+" value={personalCF.iraRMDGrossed} />
+                  )}
+                  {personalCF.pensionAnnuityGrossed > 0 && (
+                    <BreakdownRow label="Pension/Annuity" sublabel="(Line 5 @1.25x)" prefix="+" value={personalCF.pensionAnnuityGrossed} />
                   )}
                   {personalCF.socialSecurityGrossed > 0 && (
-                    <BreakdownRow label="Social Security" sublabel="(@1.25x)" prefix="+" value={personalCF.socialSecurityGrossed} />
+                    <BreakdownRow label="Social Security" sublabel="(Line 6b @1.25x)" prefix="+" value={personalCF.socialSecurityGrossed} />
                   )}
-                  {personalCF.alimony > 0 && (
-                    <BreakdownRow label="Alimony" prefix="+" value={personalCF.alimony} />
+                  {personalCF.nonBorrowingScheduleC > 0 && (
+                    <BreakdownRow label="Schedule C (Side Hustle)" sublabel="(Line 31)" prefix="+" value={personalCF.nonBorrowingScheduleC} />
                   )}
-                  {personalCF.scheduleCIncluded > 0 && (
-                    <BreakdownRow label="Schedule C Income" prefix="+" value={personalCF.scheduleCIncluded} />
-                  )}
-                  {personalCF.scheduleCExcluded && scheduleC > 0 && (
-                    <div className="flex items-center justify-between py-1.5">
-                      <span className="text-sm text-slate-400 line-through">Schedule C (excluded)</span>
-                      <span className="text-sm text-slate-400 line-through tabular-nums">{fmtDollar(scheduleC)}</span>
-                    </div>
-                  )}
-                  {personalCF.rentalIncome > 0 && (
-                    <BreakdownRow label="Rental Income (Sch E)" prefix="+" value={personalCF.rentalIncome} />
-                  )}
-                  {personalCF.farmIncome > 0 && (
-                    <BreakdownRow label="Farm Income (Sch F)" prefix="+" value={personalCF.farmIncome} />
-                  )}
-                  {personalCF.otherRecurring > 0 && (
-                    <BreakdownRow label="Other Recurring" prefix="+" value={personalCF.otherRecurring} />
-                  )}
-                  {personalCF.distributions > 0 && (
-                    <BreakdownRow label="Distributions" prefix="+" value={personalCF.distributions} />
+                  {personalCF.alimonyVoluntary > 0 && (
+                    <BreakdownRow label="Alimony (Voluntary)" prefix="+" value={personalCF.alimonyVoluntary} />
                   )}
                   <BreakdownRow label="Total Income" value={personalCF.totalIncome} bold divider />
                   <div className="flex items-center justify-between py-1.5 mt-1">

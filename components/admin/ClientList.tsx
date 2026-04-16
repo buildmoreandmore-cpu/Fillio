@@ -100,9 +100,11 @@ const ClientList: React.FC<ClientListProps> = ({
           style={{ color: NAVY }}
         >
           <option value="all">All Statuses</option>
-          <option value="provisional">Under Review</option>
+          <option value="submitted">Submitted</option>
+          <option value="under_review">Under Review</option>
           <option value="confirmed">Confirmed</option>
-          <option value="needs_revision">Needs Info</option>
+          <option value="needs_info">Needs Info</option>
+          <option value="report_released">Report Released</option>
         </select>
       </div>
 
@@ -168,7 +170,7 @@ const ClientList: React.FC<ClientListProps> = ({
                         )}
                       </td>
                       <td className="py-3 px-4 text-right font-bold tabular-nums" style={{ color: NAVY }}>
-                        {sc && sc.businessDscr > 0 ? `${sc.businessDscr.toFixed(2)}x` : '—'}
+                        {sc && sc.dscrCy > 0 ? `${sc.dscrCy.toFixed(2)}x` : '—'}
                       </td>
                       <td className="py-3 px-4 text-center">
                         {flagCount > 0 ? (

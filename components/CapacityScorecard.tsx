@@ -10,7 +10,7 @@
  *  - SBA negative-cash-flow warning
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Icon } from './Icon';
 import {
   type DebtObligation,
@@ -40,6 +40,15 @@ import {
   SCORECARD_ENTITY_LABELS,
   ENTITY_TAX_FORM,
 } from '../lib/ebida';
+import { useAuth } from '../lib/auth';
+import {
+  autoSave,
+  submitScorecard,
+  loadDraft,
+  setSubmissionId,
+  type ScorecardFormData,
+  type ScorecardResults,
+} from '../lib/scorecardPersistence';
 
 const NAVY = '#0B2820';
 const EMERALD = '#1D9E75';
@@ -159,8 +168,15 @@ const CurrencyInput: React.FC<{
 // ─────────── Main component ───────────
 
 const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier = 'free', onUpgrade }) => {
+  const { user } = useAuth();
   const isPaid = userTier !== 'free';
   const currentYear = new Date().getFullYear();
+
+  // ── Submission state ──
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [draftLoaded, setDraftLoaded] = useState(false);
 
   // ── Section A: Tax Year + Entity Type ──
   const [taxYear, setTaxYear] = useState(currentYear - 1);
@@ -180,6 +196,29 @@ const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier 
 
   // ── Section D: Debts ──
   const [debts, setDebts] = useState<DebtObligation[]>([]);
+
+  // ── Load existing draft on mount ──
+  useEffect(() => {
+    if (!user?.id || draftLoaded) return;
+    loadDraft(user.id).then((draft) => {
+      if (draft) {
+        const d = draft.data;
+        if (d.entity_type) setEntityType(d.entity_type as ScorecardEntityType);
+        if (d.tax_year) setTaxYear(Number(d.tax_year));
+        if (d.net_profit_cy) setNetIncome(Number(d.net_profit_cy));
+        if (d.interest_expense_cy) setInterestExpense(Number(d.interest_expense_cy));
+        if (d.depreciation_amortization_cy) setDepreciation(Number(d.depreciation_amortization_cy));
+        if (d.amortization_cy) setAmortization(Number(d.amortization_cy));
+        if (d.property_situation) setPropertySituation(d.property_situation as PropertySituation);
+        if (d.rent_appears_on_financials != null) setRentOnFinancials(d.rent_appears_on_financials as boolean);
+        if (d.rent_expense_cy) setAnnualRent(Number(d.rent_expense_cy));
+        if (Array.isArray(d.debt_obligations) && d.debt_obligations.length > 0) {
+          setDebts(d.debt_obligations as DebtObligation[]);
+        }
+      }
+      setDraftLoaded(true);
+    });
+  }, [user?.id, draftLoaded]);
 
   const addDebt = () =>
     setDebts((d) => [
@@ -263,6 +302,55 @@ const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier 
   const hasIncome = netIncome !== 0 || depreciation > 0 || amortization > 0 || interestExpense > 0;
   const hasDebts = debts.length > 0;
   const showResults = hasIncome && hasDebts;
+
+  // ── Auto-save to Supabase on input change (debounced 2s) ──
+  const getFormData = useCallback((): ScorecardFormData => ({
+    entityType,
+    taxYear,
+    netIncome,
+    interestExpense,
+    depreciation,
+    amortization,
+    propertySituation,
+    rentOnFinancials,
+    annualRent,
+    debts,
+    ownerTakesSalary,
+  }), [entityType, taxYear, netIncome, interestExpense, depreciation, amortization, propertySituation, rentOnFinancials, annualRent, debts, ownerTakesSalary]);
+
+  useEffect(() => {
+    if (!user?.id || !draftLoaded) return;
+    // Only auto-save when there's meaningful data
+    if (netIncome === 0 && depreciation === 0 && amortization === 0 && interestExpense === 0) return;
+    autoSave(user.id, getFormData());
+  }, [user?.id, draftLoaded, getFormData]);
+
+  // ── Submit handler ──
+  const handleSubmit = async () => {
+    if (!user?.id) return;
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    const results: ScorecardResults = {
+      ebida,
+      taxAdjustment,
+      rentAddback,
+      adjustedCashFlow,
+      totalDebtService,
+      dscr,
+      dscrScore: dscrPoints,
+      sbaEligible,
+    };
+
+    const { success, error } = await submitScorecard(user.id, getFormData(), results);
+
+    if (success) {
+      setIsSubmitted(true);
+    } else {
+      setSubmitError(error || 'Failed to submit. Please try again.');
+    }
+    setIsSubmitting(false);
+  };
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] py-12 px-4 md:px-8">
@@ -1173,8 +1261,75 @@ const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier 
           </section>
         )}
 
+        {/* ── Submit for Review (paid users with results) ── */}
+        {showResults && isPaid && user && !isSubmitted && (
+          <section className="bg-white rounded-xl border border-slate-200 p-6 mb-6">
+            <div className="text-center">
+              <h3 className="text-lg font-bold mb-2" style={{ color: NAVY }}>
+                Ready for Expert Review?
+              </h3>
+              <p className="text-sm text-slate-500 mb-5 max-w-md mx-auto leading-relaxed">
+                Submit your scorecard for review by our team. We'll verify your numbers,
+                resolve any flags, and generate your True Readiness Score report.
+              </p>
+              {submitError && (
+                <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-100 text-sm text-red-600">
+                  {submitError}
+                </div>
+              )}
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="px-8 py-3.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 shadow-lg disabled:opacity-50"
+                style={{ backgroundColor: EMERALD, boxShadow: `0 8px 24px ${EMERALD}30` }}
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Submitting...
+                  </span>
+                ) : (
+                  'Submit for Review'
+                )}
+              </button>
+              <p className="text-[11px] text-slate-400 mt-3">
+                Your data auto-saves as you type. Submitting sends it to our review queue.
+              </p>
+            </div>
+          </section>
+        )}
+
+        {/* ── Submitted success state ── */}
+        {isSubmitted && (
+          <section className="bg-white rounded-xl border-2 p-8 mb-6 text-center" style={{ borderColor: EMERALD }}>
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+              style={{ backgroundColor: `${EMERALD}10` }}
+            >
+              <Icon name="check-circle" size={32} style={{ color: EMERALD }} />
+            </div>
+            <h3 className="text-xl font-bold mb-2" style={{ color: NAVY }}>
+              Scorecard Submitted
+            </h3>
+            <p className="text-sm text-slate-500 mb-1 max-w-sm mx-auto leading-relaxed">
+              Your scorecard is now in our review queue. We'll review your numbers,
+              verify against your documents, and generate your True Readiness Score.
+            </p>
+            <p className="text-xs text-slate-400 mb-6">
+              Typical review time: 1 business day
+            </p>
+            <button
+              onClick={onBack}
+              className="px-6 py-2.5 rounded-lg text-sm font-bold transition-all hover:opacity-90"
+              style={{ backgroundColor: `${NAVY}08`, color: NAVY }}
+            >
+              Back to Dashboard
+            </button>
+          </section>
+        )}
+
         {/* Empty state */}
-        {!showResults && (
+        {!showResults && !isSubmitted && (
           <div className="bg-white rounded-xl border border-slate-200 p-8 text-center mb-6">
             <Icon name="chart" size={32} style={{ color: '#CBD5E1' }} />
             <p className="text-sm text-slate-400 mt-3">

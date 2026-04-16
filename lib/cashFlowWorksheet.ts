@@ -140,65 +140,79 @@ export function calculateBusinessDSCR(
 
 // ── SECTION 2: PERSONAL CASH FLOW ──────────────────────────────────
 
+/**
+ * Personal Cash Flow — Warren Moon (CCB HR) Credit Essentials Rules
+ *
+ * INCLUDED:
+ *   Line 1a  — W-2 Wages (guarantor only, not spouse)
+ *   Line 2b  — Taxable interest (flag if >$5K)
+ *   Line 3b  — Ordinary dividends (flag if >$5K)
+ *   Line 4b  — IRA distributions (RMD ONLY — not one-time withdrawals, grossed up x1.25)
+ *   Line 5   — Pension/annuity (ongoing/recurring only, grossed up x1.25)
+ *   Line 6b  — Social Security (grossed up x1.25)
+ *   Schedule C Line 31 — only if NOT the borrowing entity (side hustles)
+ *   Alimony  — voluntary disclosure only (client must offer, never prompt)
+ *
+ * HARD EXCLUDE:
+ *   Schedule E Part II (K-1 pass-through) — already in business EBIDA
+ *   One-time IRA withdrawals, one-time pension payouts
+ *   Tax refunds, capital gains, unemployment, gambling, cancellation of debt
+ *
+ * BUSINESS SIDE (not personal):
+ *   Schedule C (if borrowing entity), Schedule E Part I (rental), Schedule F (farm)
+ *
+ * JOINT FILER RULE:
+ *   Only use guarantor's individual income — NOT combined household total.
+ */
 export interface PersonalCashFlowInputs {
-  wagesAndSalaries: number;
-  interestAndDividends: number;
-  recurringIRAAndPension: number;         // grossed up x1.25
-  socialSecurity: number;                 // grossed up x1.25
-  alimony: number;
-  businessIncomeScheduleC: number;        // only if NOT the borrowing entity
-  isBorrowingEntityScheduleC: boolean;    // if true, exclude from total
-  rentalIncomeScheduleE: number;
-  farmIncomeScheduleF: number;
-  otherRecurringIncome: number;
-  distributions: number;
+  // Form 1040 income lines (Warren Moon rules)
+  wagesLine1a: number;                    // W-2 wages, guarantor only
+  taxableInterestLine2b: number;          // Line 2b — flag if >$5K
+  ordinaryDividendsLine3b: number;        // Line 3b — flag if >$5K
+  iraRMDLine4b: number;                   // Line 4b — RMD only, grossed up x1.25
+  pensionAnnuityLine5: number;            // Line 5 — ongoing only, grossed up x1.25
+  socialSecurityLine6b: number;           // Line 6b — grossed up x1.25
+  nonBorrowingScheduleC: number;          // Schedule C Line 31, only if NOT borrowing entity
+  alimonyVoluntary: number;               // voluntary disclosure only — never prompt
 }
 
 export interface PersonalCashFlowBreakdown {
-  wagesAndSalaries: number;
-  interestAndDividends: number;
-  iraAndPensionGrossed: number;          // input * 1.25
-  socialSecurityGrossed: number;         // input * 1.25
-  alimony: number;
-  scheduleCIncluded: number;             // 0 if borrowing entity
-  scheduleCExcluded: boolean;
-  rentalIncome: number;
-  farmIncome: number;
-  otherRecurring: number;
-  distributions: number;
+  wagesLine1a: number;
+  taxableInterestLine2b: number;
+  ordinaryDividendsLine3b: number;
+  iraRMDGrossed: number;                  // input * 1.25
+  pensionAnnuityGrossed: number;          // input * 1.25
+  socialSecurityGrossed: number;          // input * 1.25
+  nonBorrowingScheduleC: number;
+  alimonyVoluntary: number;
   totalIncome: number;
   dividedBy2: number;
 }
 
 export function calculatePersonalCashFlow(inputs: PersonalCashFlowInputs): PersonalCashFlowBreakdown {
-  const iraGrossed = inputs.recurringIRAAndPension * 1.25;
-  const ssGrossed = inputs.socialSecurity * 1.25;
-  const scheduleCAmount = inputs.isBorrowingEntityScheduleC ? 0 : inputs.businessIncomeScheduleC;
+  const iraGrossed = inputs.iraRMDLine4b * 1.25;
+  const pensionGrossed = inputs.pensionAnnuityLine5 * 1.25;
+  const ssGrossed = inputs.socialSecurityLine6b * 1.25;
 
   const totalIncome =
-    inputs.wagesAndSalaries +
-    inputs.interestAndDividends +
+    inputs.wagesLine1a +
+    inputs.taxableInterestLine2b +
+    inputs.ordinaryDividendsLine3b +
     iraGrossed +
+    pensionGrossed +
     ssGrossed +
-    inputs.alimony +
-    scheduleCAmount +
-    inputs.rentalIncomeScheduleE +
-    inputs.farmIncomeScheduleF +
-    inputs.otherRecurringIncome +
-    inputs.distributions;
+    inputs.nonBorrowingScheduleC +
+    inputs.alimonyVoluntary;
 
   return {
-    wagesAndSalaries: inputs.wagesAndSalaries,
-    interestAndDividends: inputs.interestAndDividends,
-    iraAndPensionGrossed: iraGrossed,
+    wagesLine1a: inputs.wagesLine1a,
+    taxableInterestLine2b: inputs.taxableInterestLine2b,
+    ordinaryDividendsLine3b: inputs.ordinaryDividendsLine3b,
+    iraRMDGrossed: iraGrossed,
+    pensionAnnuityGrossed: pensionGrossed,
     socialSecurityGrossed: ssGrossed,
-    alimony: inputs.alimony,
-    scheduleCIncluded: scheduleCAmount,
-    scheduleCExcluded: inputs.isBorrowingEntityScheduleC,
-    rentalIncome: inputs.rentalIncomeScheduleE,
-    farmIncome: inputs.farmIncomeScheduleF,
-    otherRecurring: inputs.otherRecurringIncome,
-    distributions: inputs.distributions,
+    nonBorrowingScheduleC: inputs.nonBorrowingScheduleC,
+    alimonyVoluntary: inputs.alimonyVoluntary,
     totalIncome,
     dividedBy2: totalIncome / 2,
   };

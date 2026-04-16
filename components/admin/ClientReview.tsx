@@ -168,8 +168,22 @@ const ClientReview: React.FC<ClientReviewProps> = ({
   const unresolvedFlags = flags.filter((f) => !f.resolved);
   const allFlagsResolved = unresolvedFlags.length === 0;
 
-  // Extract worksheet values from scorecard JSONB for the split view
-  const bizData = (scorecard.businessCashFlow || {}) as Record<string, number>;
+  // Extract worksheet values from scorecard flat columns for the split view
+  // Keys must match TAX_RETURN_LINES constant above
+  const bizData: Record<string, number> = {
+    netProfit: scorecard.netProfitCy || 0,
+    interestExpense: scorecard.interestExpenseCy || 0,
+    depreciationAndAmortization: scorecard.depreciationAmortizationCy || 0,
+    amortization: scorecard.amortizationCy || 0,
+    rentExpense: scorecard.rentExpenseCy || 0,
+    rentAddback: scorecard.rentAddbackCy || 0,
+    taxAdjustment: scorecard.taxAdjustmentCy || 0,
+    ebida: scorecard.ebidaCy || 0,
+    businessCashFlow: scorecard.businessCashFlowCy || 0,
+    businessDebtService: scorecard.businessDebtService || 0,
+    dscr: scorecard.dscrCy || 0,
+    total: scorecard.businessCashFlowCy || 0,
+  };
 
   // ── Section A: Client Overview ──
   const renderOverview = () => (
@@ -585,7 +599,7 @@ const ClientReview: React.FC<ClientReviewProps> = ({
               DSCR (Provisional)
             </div>
             <div className="text-2xl font-bold" style={{ color: GOLD }}>
-              {scorecard.businessDscr > 0 ? `${scorecard.businessDscr.toFixed(2)}x` : '—'}
+              {scorecard.dscrCy > 0 ? `${scorecard.dscrCy.toFixed(2)}x` : '—'}
             </div>
           </div>
           <div className="p-4 rounded-lg border-2 text-center"
@@ -594,8 +608,8 @@ const ClientReview: React.FC<ClientReviewProps> = ({
               DSCR (Confirmed)
             </div>
             <div className="text-2xl font-bold" style={{ color: allFlagsResolved ? EMERALD : '#94A3B8' }}>
-              {allFlagsResolved && scorecard.businessDscr > 0
-                ? `${scorecard.businessDscr.toFixed(2)}x` : 'Pending'}
+              {allFlagsResolved && scorecard.dscrCy > 0
+                ? `${scorecard.dscrCy.toFixed(2)}x` : 'Pending'}
             </div>
           </div>
         </div>

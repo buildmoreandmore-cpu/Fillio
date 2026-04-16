@@ -11,6 +11,7 @@ import Paywall from './components/Paywall';
 import CapacityScorecard from './components/CapacityScorecard';
 import AdminCashFlowWorksheet from './components/AdminCashFlowWorksheet';
 import AdminShell from './components/admin/AdminShell';
+import SubmissionStatus from './components/SubmissionStatus';
 import { useAuth } from './lib/auth';
 
 const INITIAL_PFS_DATA: PFSData = {
@@ -216,6 +217,16 @@ const App: React.FC = () => {
   if (view === 'landing') {
     return (
       <div className="relative">
+        {/* Client submission status banner (logged-in non-admin users) */}
+        {isLoggedIn && user?.id && !profile?.is_admin && (
+          <div className="max-w-4xl mx-auto px-4 pt-20">
+            <SubmissionStatus
+              userId={user.id}
+              onContinueScorecard={() => setView('scorecard')}
+              onViewReport={() => setView('scorecard')}
+            />
+          </div>
+        )}
         <LandingPage
           onGetStarted={() => setAuthMode('signup')}
           onSignIn={() => setAuthMode('signin')}

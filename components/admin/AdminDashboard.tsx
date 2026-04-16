@@ -76,7 +76,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onReviewClient,
 }) => {
   const totalClients = clients.length;
-  const pendingReview = scorecards.filter((s) => s.status === 'provisional').length;
+  const pendingReview = scorecards.filter((s) => s.status === 'submitted' || s.status === 'under_review').length;
   const now = new Date();
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const confirmedThisWeek = scorecards.filter(
@@ -85,7 +85,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // Pending scorecards sorted by most recent
   const pendingScorecards = scorecards
-    .filter((s) => s.status === 'provisional')
+    .filter((s) => s.status === 'submitted' || s.status === 'under_review')
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const getClient = (userId: string) => clients.find((c) => c.id === userId);
@@ -157,7 +157,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         )}
                       </td>
                       <td className="py-3 px-4 text-right font-bold tabular-nums" style={{ color: NAVY }}>
-                        {sc.businessDscr > 0 ? `${sc.businessDscr.toFixed(2)}x` : '—'}
+                        {sc.dscrCy > 0 ? `${sc.dscrCy.toFixed(2)}x` : '—'}
                       </td>
                       <td className="py-3 px-5 text-right">
                         <button
