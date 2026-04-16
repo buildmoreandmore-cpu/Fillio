@@ -493,10 +493,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
         <div className="h-20 flex items-center justify-between px-6 md:px-12 max-w-7xl mx-auto">
           <div className="flex items-center gap-3">
             <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-md"
+              className="w-10 h-10 rounded-lg flex items-center justify-center shadow-md"
               style={{ backgroundColor: NAVY }}
             >
-              <Icon name="bank" size={22} />
+              <Icon name="bank" size={22} style={{ color: '#5DDBA8' }} />
             </div>
             <div className="leading-none">
               <div className="text-lg font-bold tracking-tight" style={{ color: NAVY }}>
@@ -602,15 +602,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
 
               <div className="flex items-center gap-6 text-sm text-slate-400">
                 <div className="flex items-center gap-2">
-                  <Icon name="check-circle" size={18} style={{ color: EMERALD }} />
+                  <Icon name="check-circle" size={18} style={{ color: '#5DDBA8' }} />
                   No credit pull
                 </div>
                 <div className="flex items-center gap-2">
-                  <Icon name="check-circle" size={18} style={{ color: EMERALD }} />
+                  <Icon name="check-circle" size={18} style={{ color: '#5DDBA8' }} />
                   No bank required
                 </div>
                 <div className="flex items-center gap-2">
-                  <Icon name="check-circle" size={18} style={{ color: EMERALD }} />
+                  <Icon name="check-circle" size={18} style={{ color: '#5DDBA8' }} />
                   Start in 5 minutes
                 </div>
               </div>
@@ -1180,7 +1180,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
                     className="w-11 h-11 rounded-xl flex items-center justify-center"
                     style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
                   >
-                    <Icon name={doc.icon} size={22} style={{ color: '#FFFFFF' }} />
+                    <Icon name={doc.icon} size={22} style={{ color: '#5DDBA8' }} />
                   </div>
                   <div
                     className="px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.12em]"
@@ -1219,7 +1219,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
                   className="w-12 h-12 rounded-xl flex items-center justify-center"
                   style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
                 >
-                  <Icon name="chart" size={24} style={{ color: '#FFFFFF' }} />
+                  <Icon name="chart" size={24} style={{ color: '#5DDBA8' }} />
                 </div>
                 <div>
                   <div className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400 mb-0.5">
@@ -1313,10 +1313,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
             <div className="flex items-center gap-3">
               <div
-                className="w-9 h-9 rounded-lg flex items-center justify-center text-white shadow-md"
+                className="w-9 h-9 rounded-lg flex items-center justify-center shadow-md"
                 style={{ backgroundColor: NAVY }}
               >
-                <Icon name="bank" size={20} />
+                <Icon name="bank" size={20} style={{ color: '#5DDBA8' }} />
               </div>
               <div>
                 <div className="text-base font-bold" style={{ color: NAVY }}>
