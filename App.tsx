@@ -12,8 +12,10 @@ import CapacityScorecard from './components/CapacityScorecard';
 import AdminCashFlowWorksheet from './components/AdminCashFlowWorksheet';
 import AdminShell from './components/admin/AdminShell';
 import SubmissionStatus from './components/SubmissionStatus';
+import ClientDashboard from './components/ClientDashboard';
 import IntakeQuestionnaire, { type IntakeAnswers } from './components/IntakeQuestionnaire';
 import { useAuth } from './lib/auth';
+import { saveIntakeSubmission, updateProfileFromIntake } from './lib/intakePersistence';
 
 const INITIAL_PFS_DATA: PFSData = {
   fullName: '',
@@ -32,7 +34,7 @@ const App: React.FC = () => {
 
   const [hasPaidForDoc, setHasPaidForDoc] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup' | null>(null);
-  const [view, setView] = useState<'landing' | 'flow' | 'review' | 'paywall' | 'scorecard' | 'admin-worksheet' | 'admin'>('landing');
+  const [view, setView] = useState<'landing' | 'flow' | 'review' | 'paywall' | 'scorecard' | 'admin-worksheet' | 'admin' | 'dashboard'>('landing');
   const [pendingScorecardUpgrade, setPendingScorecardUpgrade] = useState(false);
   const [intakeTier, setIntakeTier] = useState<'bank_ready' | 'loan_ready' | 'approved' | null>(null);
   const [intakeAnswers, setIntakeAnswers] = useState<IntakeAnswers | null>(null);
@@ -175,13 +177,23 @@ const App: React.FC = () => {
     }
   }, [isLoggedIn, profile?.is_admin]);
 
-  // After signup with intake answers, auto-navigate to scorecard
+  // After login, route non-admin users to their dashboard
   useEffect(() => {
-    if (isLoggedIn && intakeAnswers && view === 'landing') {
-      setView('scorecard');
-      // Intake answers are available for the scorecard to consume
+    if (isLoggedIn && !profile?.is_admin && view === 'landing') {
+      setView('dashboard');
     }
-  }, [isLoggedIn, intakeAnswers, view]);
+  }, [isLoggedIn, profile?.is_admin]);
+
+  // After signup with intake answers, save intake to DB then navigate to dashboard
+  useEffect(() => {
+    if (isLoggedIn && intakeAnswers && user?.id) {
+      saveIntakeSubmission(user.id, intakeAnswers).then(() => {
+        updateProfileFromIntake(user.id!, intakeAnswers!);
+        setIntakeAnswers(null);
+        setView('dashboard');
+      });
+    }
+  }, [isLoggedIn, intakeAnswers, user?.id]);
 
   // Derive scorecard tier from profile
   const scorecardTier = profile?.tier === 'bank_ready' ? 'tier1' : 'free';
@@ -239,6 +251,43 @@ const App: React.FC = () => {
           />
         )}
       </>
+    );
+  }
+
+  // Client dashboard — logged-in non-admin users
+  if (view === 'dashboard') {
+    if (!isLoggedIn) {
+      setView('landing');
+      return null;
+    }
+    return (
+      <div className="relative">
+        <ClientDashboard
+          userId={user!.id}
+          userName={profile?.full_name || 'User'}
+          businessName={profile?.business_name || ''}
+          tier={(profile?.tier as 'bank_ready' | 'loan_ready' | 'approved') || null}
+          onStartScorecard={() => setView('scorecard')}
+          onContinueScorecard={() => setView('scorecard')}
+          onLogout={handleLogout}
+          onTierClick={handleTierClick}
+        />
+        {intakeTier && (
+          <IntakeQuestionnaire
+            tier={intakeTier}
+            onComplete={handleIntakeComplete}
+            onClose={() => setIntakeTier(null)}
+          />
+        )}
+        {authMode && (
+          <AuthModal
+            mode={authMode}
+            onClose={() => setAuthMode(null)}
+            onSuccess={handleLogin}
+            setMode={setAuthMode}
+          />
+        )}
+      </div>
     );
   }
 
