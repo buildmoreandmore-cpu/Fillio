@@ -9,6 +9,7 @@ interface LandingPageProps {
   onDocClick: (type: DocumentType) => void;
   onScorecard?: () => void;
   onAdmin?: () => void;
+  onTierClick?: (tier: 'bank_ready' | 'loan_ready' | 'approved') => void;
   user?: { name: string; email: string; isAdmin?: boolean } | null;
   onLogout?: () => void;
   onAdminDashboard?: () => void;
@@ -452,7 +453,7 @@ const HeroScoreCard: React.FC<{ onCTAClick: () => void }> = ({ onCTAClick }) => 
   );
 };
 
-const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDocClick, onScorecard, onAdmin, user, onLogout, onAdminDashboard }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDocClick, onScorecard, onAdmin, onTierClick, user, onLogout, onAdminDashboard }) => {
   const [expandedTiers, setExpandedTiers] = useState<Record<TierKey, boolean>>({
     bank_ready: false,
     loan_ready: false,
@@ -463,11 +464,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onDoc
     setExpandedTiers((s) => ({ ...s, [key]: !s[key] }));
 
   const handleTierClick = (tier: TierKey) => {
-    if (tier === 'bank_ready' && onScorecard) {
-      // $297 Bank Ready → Scorecard tool (which has the $297 checkout CTA)
+    if (onTierClick) {
+      // Route all tiers through the intake questionnaire
+      onTierClick(tier);
+    } else if (tier === 'bank_ready' && onScorecard) {
       onScorecard();
     } else {
-      // Higher tiers ($2,497 / $7,997) → signup to capture the lead
       onGetStarted();
     }
   };

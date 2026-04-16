@@ -54,10 +54,20 @@ const NAVY = '#0B2820';
 const EMERALD = '#1D9E75';
 const GOLD = '#BA7517';
 
+interface IntakeAnswers {
+  selectedTier: 'bank_ready' | 'loan_ready' | 'approved';
+  businessName: string;
+  timeInBusiness: string;
+  financingType: string;
+  loanAmount: string;
+  declinedBefore: boolean | null;
+}
+
 interface CapacityScorecardProps {
   onBack: () => void;
   userTier?: 'free' | 'tier1' | 'tier2' | 'tier3';
   onUpgrade?: () => void;
+  intakeAnswers?: IntakeAnswers | null;
 }
 
 // ─────────── Currency formatter ───────────
@@ -167,7 +177,7 @@ const CurrencyInput: React.FC<{
 
 // ─────────── Main component ───────────
 
-const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier = 'free', onUpgrade }) => {
+const CapacityScorecard: React.FC<CapacityScorecardProps> = ({ onBack, userTier = 'free', onUpgrade, intakeAnswers }) => {
   const { user } = useAuth();
   const isPaid = userTier !== 'free';
   const currentYear = new Date().getFullYear();
