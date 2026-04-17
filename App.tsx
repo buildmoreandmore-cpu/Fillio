@@ -14,8 +14,9 @@ import AdminShell from './components/admin/AdminShell';
 import SubmissionStatus from './components/SubmissionStatus';
 import ClientDashboard from './components/ClientDashboard';
 import IntakeQuestionnaire, { type IntakeAnswers } from './components/IntakeQuestionnaire';
+import Tier3ApplicationModal from './components/Tier3ApplicationModal';
 import { useAuth } from './lib/auth';
-import { saveIntakeSubmission, updateProfileFromIntake } from './lib/intakePersistence';
+import { saveIntakeSubmission, activateProfile } from './lib/intakePersistence';
 
 const INITIAL_PFS_DATA: PFSData = {
   fullName: '',
@@ -28,7 +29,7 @@ const INITIAL_PFS_DATA: PFSData = {
 };
 
 const App: React.FC = () => {
-  const { user, profile, signOut, isLoading: authLoading } = useAuth();
+  const { user, profile, signOut, refreshProfile, isLoading: authLoading } = useAuth();
   const isLoggedIn = !!user;
   const isPro = profile?.is_pro ?? false;
 
@@ -38,6 +39,8 @@ const App: React.FC = () => {
   const [pendingScorecardUpgrade, setPendingScorecardUpgrade] = useState(false);
   const [intakeTier, setIntakeTier] = useState<'bank_ready' | 'loan_ready' | 'approved' | null>(null);
   const [intakeAnswers, setIntakeAnswers] = useState<IntakeAnswers | null>(null);
+  const [showTier3Modal, setShowTier3Modal] = useState(false);
+  const [pendingTierPurchase, setPendingTierPurchase] = useState(false);
   const [search, setSearch] = useState('');
   const [state, setState] = useState<AppState>({
     selectedDoc: null,
@@ -50,11 +53,31 @@ const App: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('checkout') === 'success') {
       const type = params.get('type');
+      const sessionId = params.get('session_id') || '';
       if (type === 'one-time') {
         setHasPaidForDoc(true);
         setView('review');
       } else if (type === 'scorecard') {
         setView('scorecard');
+      } else if (type === 'tier_purchase') {
+        // Returning from tier payment — restore intake data from localStorage
+        const stored = localStorage.getItem('brd_intake');
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (Date.now() - parsed.timestamp < 3600000) {
+              setIntakeAnswers(parsed.answers);
+            }
+          } catch { /* ignore parse errors */ }
+        }
+        // Store session ID for linking after signup
+        if (sessionId) {
+          localStorage.setItem('brd_stripe_session', sessionId);
+        }
+        // Mark that we're coming from a tier purchase
+        setPendingTierPurchase(true);
+        // Open signup form — payment is already done
+        setAuthMode('signup');
       }
       // Clean the URL without reloading
       window.history.replaceState({}, '', window.location.pathname);
@@ -67,20 +90,53 @@ const App: React.FC = () => {
   };
 
   const handleTierClick = (tier: 'bank_ready' | 'loan_ready' | 'approved') => {
-    if (isLoggedIn) {
-      // Already logged in — go straight to scorecard
-      setView('scorecard');
+    if (isLoggedIn && profile?.has_paid) {
+      // Already logged in and paid — go straight to dashboard
+      setView('dashboard');
+    } else if (tier === 'approved') {
+      // Tier 3 — show intake first, then application modal
+      setIntakeTier(tier);
     } else {
-      // Not logged in — show intake questionnaire first
+      // Tier 1/2 — show intake first, then Stripe checkout
       setIntakeTier(tier);
     }
   };
 
-  const handleIntakeComplete = (answers: IntakeAnswers) => {
+  const handleIntakeComplete = async (answers: IntakeAnswers) => {
     setIntakeAnswers(answers);
     setIntakeTier(null);
-    // Now open signup — intake data will be available after account creation
-    setAuthMode('signup');
+
+    if (answers.selectedTier === 'approved') {
+      // Tier 3 — application only, no direct checkout
+      setShowTier3Modal(true);
+      return;
+    }
+
+    // Tier 1 or 2 — persist intake data to localStorage, then redirect to Stripe
+    localStorage.setItem('brd_intake', JSON.stringify({
+      answers,
+      tier: answers.selectedTier,
+      timestamp: Date.now(),
+    }));
+
+    try {
+      const priceType = `tier_${answers.selectedTier}`;
+      const response = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceType,
+          userId: user?.id || 'pending',
+          successUrl: `${window.location.origin}?checkout=success`,
+          cancelUrl: window.location.origin,
+        }),
+      });
+      const { url } = await response.json();
+      if (url) window.location.href = url;
+    } catch {
+      // Checkout failed — clean up and let user retry
+      localStorage.removeItem('brd_intake');
+    }
   };
 
   const handleLogout = async () => {
@@ -177,23 +233,30 @@ const App: React.FC = () => {
     }
   }, [isLoggedIn, profile?.is_admin]);
 
-  // After login, route non-admin users to their dashboard
+  // After login, route paid non-admin users to their dashboard
   useEffect(() => {
-    if (isLoggedIn && !profile?.is_admin && view === 'landing') {
+    if (isLoggedIn && !profile?.is_admin && profile?.has_paid && view === 'landing') {
       setView('dashboard');
     }
-  }, [isLoggedIn, profile?.is_admin]);
+  }, [isLoggedIn, profile?.is_admin, profile?.has_paid]);
 
-  // After signup with intake answers, save intake to DB then navigate to dashboard
+  // After signup following tier purchase — save intake + activate profile
   useEffect(() => {
-    if (isLoggedIn && intakeAnswers && user?.id) {
-      saveIntakeSubmission(user.id, intakeAnswers).then(() => {
-        updateProfileFromIntake(user.id!, intakeAnswers!);
+    if (isLoggedIn && pendingTierPurchase && intakeAnswers && user?.id) {
+      const stripeSessionId = localStorage.getItem('brd_stripe_session') || undefined;
+      Promise.all([
+        saveIntakeSubmission(user.id, intakeAnswers),
+        activateProfile(user.id, intakeAnswers, stripeSessionId),
+      ]).then(() => {
+        localStorage.removeItem('brd_intake');
+        localStorage.removeItem('brd_stripe_session');
         setIntakeAnswers(null);
+        setPendingTierPurchase(false);
+        refreshProfile();
         setView('dashboard');
       });
     }
-  }, [isLoggedIn, intakeAnswers, user?.id]);
+  }, [isLoggedIn, pendingTierPurchase, intakeAnswers, user?.id]);
 
   // Derive scorecard tier from profile
   const scorecardTier = profile?.tier === 'bank_ready' ? 'tier1' : 'free';
@@ -254,9 +317,9 @@ const App: React.FC = () => {
     );
   }
 
-  // Client dashboard — logged-in non-admin users
+  // Client dashboard — logged-in, paid, non-admin users only
   if (view === 'dashboard') {
-    if (!isLoggedIn) {
+    if (!isLoggedIn || !profile?.has_paid) {
       setView('landing');
       return null;
     }
@@ -272,13 +335,6 @@ const App: React.FC = () => {
           onLogout={handleLogout}
           onTierClick={handleTierClick}
         />
-        {intakeTier && (
-          <IntakeQuestionnaire
-            tier={intakeTier}
-            onComplete={handleIntakeComplete}
-            onClose={() => setIntakeTier(null)}
-          />
-        )}
         {authMode && (
           <AuthModal
             mode={authMode}
@@ -320,6 +376,13 @@ const App: React.FC = () => {
             tier={intakeTier}
             onComplete={handleIntakeComplete}
             onClose={() => setIntakeTier(null)}
+          />
+        )}
+        {showTier3Modal && (
+          <Tier3ApplicationModal
+            onClose={() => setShowTier3Modal(false)}
+            onSubmitted={() => setShowTier3Modal(false)}
+            prefillBusinessName={intakeAnswers?.businessName}
           />
         )}
         {authMode && (

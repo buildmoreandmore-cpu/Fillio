@@ -53,12 +53,12 @@ export default async function handler(req: any, res: any) {
         const session = event.data.object as Stripe.Checkout.Session;
         const { userId, documentId, type } = session.metadata || {};
 
-        if (userId && userId !== 'guest') {
+        if (userId && userId !== 'guest' && userId !== 'pending') {
           // Record the purchase
           await supabase.from('purchases').insert({
             user_id: userId,
             document_id: documentId || null,
-            type: type as 'one-time' | 'subscription',
+            type: type as 'one-time' | 'subscription' | 'tier_purchase',
             stripe_payment_id: session.payment_intent as string || session.subscription as string,
             amount: session.amount_total || 0,
             status: 'completed'
@@ -82,6 +82,20 @@ export default async function handler(req: any, res: any) {
               .update({
                 tier: 'bank_ready',
                 stripe_customer_id: session.customer as string
+              })
+              .eq('id', userId);
+          }
+
+          // If tier purchase, activate the account
+          if (type === 'tier_purchase') {
+            const tier = session.metadata?.tier;
+            await supabase
+              .from('profiles')
+              .update({
+                tier: tier || 'bank_ready',
+                has_paid: true,
+                paid_at: new Date().toISOString(),
+                stripe_customer_id: session.customer as string,
               })
               .eq('id', userId);
           }

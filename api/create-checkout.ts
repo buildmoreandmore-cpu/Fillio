@@ -97,6 +97,58 @@ export default async function handler(req: any, res: any) {
           type: 'scorecard'
         }
       };
+    } else if (priceType === 'tier_bank_ready') {
+      // Bank Ready tier: $297
+      sessionConfig = {
+        mode: 'payment',
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'Bank Ready Package',
+                description: 'DIY scorecard, document builder, cash flow calculator, and institutional lending guide.',
+              },
+              unit_amount: 29700, // $297.00
+            },
+            quantity: 1,
+          },
+        ],
+        success_url: `${successUrl}${successUrl.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}&type=tier_purchase`,
+        cancel_url: cancelUrl,
+        metadata: {
+          userId: userId || 'pending',
+          type: 'tier_purchase',
+          tier: 'bank_ready'
+        }
+      };
+    } else if (priceType === 'tier_loan_ready') {
+      // Loan Ready tier: $2,497
+      sessionConfig = {
+        mode: 'payment',
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'Loan Ready Package',
+                description: 'Advisor-guided credit review, 60-minute strategy session, leverage analysis, and personal cash flow review.',
+              },
+              unit_amount: 249700, // $2,497.00
+            },
+            quantity: 1,
+          },
+        ],
+        success_url: `${successUrl}${successUrl.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}&type=tier_purchase`,
+        cancel_url: cancelUrl,
+        metadata: {
+          userId: userId || 'pending',
+          type: 'tier_purchase',
+          tier: 'loan_ready'
+        }
+      };
     } else {
       return res.status(400).json({ error: 'Invalid price type' });
     }

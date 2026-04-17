@@ -47,7 +47,10 @@ export interface Database {
           full_name: string | null
           is_pro: boolean
           is_admin: boolean
+          has_paid: boolean
+          paid_at: string | null
           stripe_customer_id: string | null
+          stripe_session_id: string | null
           business_name: string | null
           tier: string | null
           is_priority: boolean
@@ -63,7 +66,10 @@ export interface Database {
           full_name?: string | null
           is_pro?: boolean
           is_admin?: boolean
+          has_paid?: boolean
+          paid_at?: string | null
           stripe_customer_id?: string | null
+          stripe_session_id?: string | null
           business_name?: string | null
           tier?: string | null
           created_at?: string
@@ -75,7 +81,10 @@ export interface Database {
           full_name?: string | null
           is_pro?: boolean
           is_admin?: boolean
+          has_paid?: boolean
+          paid_at?: string | null
           stripe_customer_id?: string | null
+          stripe_session_id?: string | null
           business_name?: string | null
           tier?: string | null
           is_priority?: boolean
@@ -298,7 +307,7 @@ export interface Database {
           id: string
           user_id: string
           document_id: string | null
-          type: 'one-time' | 'subscription'
+          type: 'one-time' | 'subscription' | 'tier_purchase'
           stripe_payment_id: string | null
           amount: number
           status: 'pending' | 'completed' | 'failed'
@@ -308,7 +317,7 @@ export interface Database {
           id?: string
           user_id: string
           document_id?: string | null
-          type: 'one-time' | 'subscription'
+          type: 'one-time' | 'subscription' | 'tier_purchase'
           stripe_payment_id?: string | null
           amount: number
           status?: 'pending' | 'completed' | 'failed'
@@ -318,7 +327,7 @@ export interface Database {
           id?: string
           user_id?: string
           document_id?: string | null
-          type?: 'one-time' | 'subscription'
+          type?: 'one-time' | 'subscription' | 'tier_purchase'
           stripe_payment_id?: string | null
           amount?: number
           status?: 'pending' | 'completed' | 'failed'

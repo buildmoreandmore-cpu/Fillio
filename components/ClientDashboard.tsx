@@ -106,8 +106,8 @@ const StarIcon = () => (
 
 const TIER_CARDS: { key: 'bank_ready' | 'loan_ready' | 'approved'; name: string; price: string; desc: string; color: string }[] = [
   { key: 'bank_ready', name: 'Bank Ready', price: '$297', desc: 'DIY scorecard and document builder', color: EMERALD },
-  { key: 'loan_ready', name: 'Loan Ready', price: '$697', desc: 'Advisor-guided credit review', color: NAVY },
-  { key: 'approved', name: 'Approved', price: '$1,497', desc: 'Full concierge loan packaging', color: GOLD },
+  { key: 'loan_ready', name: 'Loan Ready', price: '$2,497', desc: 'Advisor-guided credit review', color: NAVY },
+  { key: 'approved', name: 'Approved', price: '$7,997', desc: 'Full concierge — by application', color: GOLD },
 ];
 
 // ─── Component ───
@@ -380,10 +380,10 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                 </div>
                 <div>
                   <h2 className="text-lg font-bold mb-1" style={{ color: NAVY }}>
-                    Your Application Is Under Review
+                    Your File Is With Your Advisor
                   </h2>
                   <p className="text-sm text-slate-500 leading-relaxed">
-                    Our team is reviewing your information. We'll reach out within 1 business day.
+                    Your file is with your advisor. We'll reach out within 1 business day.
                   </p>
                 </div>
               </div>
@@ -514,16 +514,36 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
 
             <div className="bg-white rounded-xl border border-slate-200 p-6 sm:p-8 text-center">
               <div className="flex justify-center mb-4">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: `${GOLD}12` }}>
-                  <StarIcon />
+                <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: `${EMERALD}12` }}>
+                  <CheckCircleIcon size={28} color={EMERALD} />
                 </div>
               </div>
               <h2 className="text-xl font-bold mb-2" style={{ color: NAVY }}>
-                You've Been Approved
+                Your File Has Been Confirmed
               </h2>
               <p className="text-sm text-slate-500 leading-relaxed mb-6 max-w-md mx-auto">
-                Your advisor will reach out to schedule your credit conversation and walk you through next steps.
+                Your readiness analysis is complete. Your advisor has confirmed your file. Check your email for next steps.
               </p>
+
+              {/* Tier-specific CTA */}
+              {tier === 'loan_ready' && (
+                <div className="mb-6">
+                  <button
+                    className="px-6 py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
+                    style={{ backgroundColor: EMERALD }}
+                  >
+                    Book Your Strategy Session
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline ml-2" aria-hidden="true">
+                      <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+              {tier === 'approved' && (
+                <div className="mb-6 p-4 bg-slate-50 rounded-xl">
+                  <p className="text-sm text-slate-600 font-medium">Your advisor will be in touch within 24 hours.</p>
+                </div>
+              )}
 
               <div className="bg-slate-50 rounded-xl p-5 text-left max-w-sm mx-auto">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">Next Steps</p>
@@ -532,7 +552,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                     <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: `${EMERALD}15` }}>
                       <CheckCircleIcon size={12} color={EMERALD} />
                     </div>
-                    <span className="text-xs text-slate-600 leading-relaxed">Check your email for your advisor's meeting link</span>
+                    <span className="text-xs text-slate-600 leading-relaxed">Check your email for details from your advisor</span>
                   </div>
                   <div className="flex items-start gap-3">
                     <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: `${EMERALD}15` }}>
@@ -576,10 +596,10 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                 </div>
                 <div>
                   <h2 className="text-lg font-bold mb-1" style={{ color: NAVY }}>
-                    We Need More Information
+                    Your Advisor Needs One More Thing
                   </h2>
                   <p className="text-sm text-slate-500 leading-relaxed mb-4">
-                    Check your email for details on what's needed to continue processing your application.
+                    Your advisor needs one more thing before completing your review. Check your email for details.
                   </p>
                   <p className="text-[11px] text-slate-400">
                     If you don't see the email, check your spam folder or reach out to your advisor directly.

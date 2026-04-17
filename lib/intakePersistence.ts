@@ -68,3 +68,24 @@ export async function updateProfileFromIntake(userId: string, answers: IntakeAns
     })
     .eq('id', userId);
 }
+
+/**
+ * Activate profile after Stripe payment + signup.
+ * Sets has_paid, paid_at, tier, business_name, and links the Stripe session.
+ */
+export async function activateProfile(
+  userId: string,
+  answers: IntakeAnswers,
+  stripeSessionId?: string
+) {
+  await (supabase as any)
+    .from('profiles')
+    .update({
+      business_name: answers.businessName,
+      tier: answers.selectedTier,
+      has_paid: true,
+      paid_at: new Date().toISOString(),
+      stripe_session_id: stripeSessionId || null,
+    })
+    .eq('id', userId);
+}
